@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Stock Management System'),
+      home: const MyHomePage(title: 'Dealer Anis  😉'),
     );
   }
 }

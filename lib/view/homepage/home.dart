@@ -1,4 +1,5 @@
 import 'package:anis_dealer/view/mobile/mobile_table.dart';
+import 'package:anis_dealer/view/stock/stock_home.dart';
 import 'package:flutter/material.dart';
 import 'package:anis_dealer/view/model_view/model_view.dart';
 
@@ -45,7 +46,15 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             ElevatedButton(onPressed: () {}, child: const Text('Sell Mobile')),
             const SizedBox(width: 12),
-            ElevatedButton(onPressed: () {}, child: const Text('Stock View`')),
+               ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => StockHome()),
+                );
+              },
+              child: const Text('View Stock'),
+            ),
           ],
         ),
       ),

@@ -203,30 +203,43 @@ class _ModelViewState extends State<ModelView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Stock Models')),
-      body: SingleChildScrollView(
-        child: DataTable(
-          columns: const [
-            DataColumn(label: Text('ID')),
-            DataColumn(label: Text('Model Name')),
-            DataColumn(label: Text('Color')),
-            DataColumn(label: Text('Description')),
-          ],
-          rows: models.map((model) {
-            return DataRow(
-              cells: [
-                DataCell(Text(model['id']!)),
-                DataCell(Text(model['name']!)),
-                DataCell(Text(model['color']!)),
-                DataCell(Text(model['description']!)),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddModelDialog,
-        tooltip: 'Add New Model',
-        child: const Icon(Icons.add),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton.icon(
+              onPressed: _showAddModelDialog,
+              icon: const Icon(Icons.add),
+              label: const Text('New Model'),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const [
+                    DataColumn(label: Text('ID')),
+                    DataColumn(label: Text('Model Name')),
+                    DataColumn(label: Text('Color')),
+                    DataColumn(label: Text('Description')),
+                  ],
+                  rows: models.map((model) {
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(model['id']!)),
+                        DataCell(Text(model['name']!)),
+                        DataCell(Text(model['color']!)),
+                        DataCell(Text(model['description']!)),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
