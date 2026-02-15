@@ -218,23 +218,28 @@ class _ModelViewState extends State<ModelView> {
               scrollDirection: Axis.vertical,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('ID')),
-                    DataColumn(label: Text('Model Name')),
-                    DataColumn(label: Text('Color')),
-                    DataColumn(label: Text('Description')),
-                  ],
-                  rows: models.map((model) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(model['id']!)),
-                        DataCell(Text(model['name']!)),
-                        DataCell(Text(model['color']!)),
-                        DataCell(Text(model['description']!)),
-                      ],
-                    );
-                  }).toList(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                      minWidth: MediaQuery.of(context).size.width),
+                  child: DataTable(
+                    columnSpacing: 24,
+                    columns: const [
+                      DataColumn(label: Text('ID')),
+                      DataColumn(label: Text('Model Name')),
+                      DataColumn(label: Text('Color')),
+                      DataColumn(label: Text('Description')),
+                    ],
+                    rows: models.map((model) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(model['id']!)),
+                          DataCell(Text(model['name']!)),
+                          DataCell(Text(model['color']!)),
+                          DataCell(Text(model['description']!)),
+                        ],
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
