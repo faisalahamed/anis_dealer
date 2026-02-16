@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AddModelView extends StatefulWidget {
-  const AddModelView({Key? key}) : super(key: key);
+  const AddModelView({super.key});
 
   @override
   State<AddModelView> createState() => _AddModelViewState();

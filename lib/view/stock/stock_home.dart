@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class StockHome extends StatefulWidget {
+  const StockHome({super.key});
+
   @override
   State<StockHome> createState() => _StockHomeState();
 }

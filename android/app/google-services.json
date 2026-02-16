@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "193322885080",
+    "project_id": "anis-dealer",
+    "storage_bucket": "anis-dealer.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:193322885080:android:a5a591e96d97404ef79cad",
+        "android_client_info": {
+          "package_name": "com.example.anis_dealer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYTe0XDtoXHzu4fbOzIiALel7SO2zi8pw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

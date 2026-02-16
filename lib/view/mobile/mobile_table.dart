@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class MobileTableView extends StatefulWidget {
+  const MobileTableView({super.key});
+
   @override
   State<MobileTableView> createState() => _MobileTableViewState();
 }
