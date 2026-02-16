@@ -1,6 +1,6 @@
+import 'package:anis_dealer/view/mobile/add_new_mobile_multi.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:anis_dealer/view/mobile/add_new_mobile.dart';
 
 class MobileTableView extends StatefulWidget {
   const MobileTableView({super.key});
@@ -36,9 +36,14 @@ class _MobileTableViewState extends State<MobileTableView> {
             padding: EdgeInsets.all(16),
             child: ElevatedButton.icon(
               onPressed: () {
+                // Navigator.of(context).push(
+                //   MaterialPageRoute(
+                //     builder: (_) => const AddNewMobilePage(),
+                //   ),
+                // );
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const AddNewMobilePage(),
+                    builder: (_) => const AddNewMobileMultiPage(),
                   ),
                 );
               },
@@ -86,15 +91,21 @@ class _MobileTableViewState extends State<MobileTableView> {
                         return DataRow(
                           cells: [
                             DataCell(Text(doc.id)),
-                            DataCell(Text(_createdAtToString(data['createdAt']))),
+                            DataCell(
+                              Text(_createdAtToString(data['createdAt'])),
+                            ),
                             DataCell(Text('${data['iemi'] ?? ''}')),
                             DataCell(Text('${data['modelId'] ?? ''}')),
                             DataCell(Text('${data['name'] ?? ''}')),
                             DataCell(Text('${data['color'] ?? ''}')),
                             DataCell(Text('${data['description'] ?? ''}')),
                             DataCell(Text('${data['buyPrice'] ?? ''}')),
-                            DataCell(Text('${data['estimatedSellingPrice'] ?? ''}')),
-                            DataCell(Text((data['isSold'] ?? false) ? 'Yes' : 'No')),
+                            DataCell(
+                              Text('${data['estimatedSellingPrice'] ?? ''}'),
+                            ),
+                            DataCell(
+                              Text((data['isSold'] ?? false) ? 'Yes' : 'No'),
+                            ),
                           ],
                         );
                       }).toList(),
