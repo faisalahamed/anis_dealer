@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 class CustomerHome extends StatefulWidget {
   const CustomerHome({super.key});
@@ -10,6 +11,8 @@ class CustomerHome extends StatefulWidget {
 
 class _CustomerHomeState extends State<CustomerHome> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ScrollController _hController = ScrollController();
+  final ScrollController _vController = ScrollController();
 
   void _showAddCustomerDialog() {
     final nameController = TextEditingController();
@@ -81,53 +84,81 @@ class _CustomerHomeState extends State<CustomerHome> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: _firestore
-                  .collection('customers')
-                  .orderBy('createdAt', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            child: ScrollConfiguration(
+              behavior: const _AppScrollBehavior(),
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firestore
+                    .collection('customers')
+                    .orderBy('createdAt', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text('No Customers Found'));
-                }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text('No Customers Found'));
+                  }
 
-                final docs = snapshot.data!.docs;
+                  final docs = snapshot.data!.docs;
 
-                return SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columnSpacing: 24,
-                      columns: const [
-                        DataColumn(label: Text('Customer ID')),
-                        DataColumn(label: Text('Customer Name')),
-                        DataColumn(label: Text('Customer Mobile')),
-                        DataColumn(label: Text('Customer Address')),
-                      ],
-                      rows: docs.map((doc) {
-                        final data = doc.data() as Map<String, dynamic>;
-                        return DataRow(
-                          cells: [
-                            DataCell(Text(doc.id)),
-                            DataCell(Text(data['name'] ?? '')),
-                            DataCell(Text(data['mobile'] ?? '')),
-                            DataCell(Text(data['address'] ?? '')),
-                          ],
-                        );
-                      }).toList(),
+                  return Scrollbar(
+                    controller: _vController,
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      controller: _vController,
+                      scrollDirection: Axis.vertical,
+                      child: Scrollbar(
+                        controller: _hController,
+                        thumbVisibility: true,
+                        notificationPredicate: (notification) =>
+                            notification.metrics.axis == Axis.horizontal,
+                        child: SingleChildScrollView(
+                          controller: _hController,
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            columnSpacing: 24,
+                            columns: const [
+                              DataColumn(label: Text('Customer ID')),
+                              DataColumn(label: Text('Customer Name')),
+                              DataColumn(label: Text('Customer Mobile')),
+                              DataColumn(label: Text('Customer Address')),
+                            ],
+                            rows: docs.map((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              return DataRow(
+                                cells: [
+                                  DataCell(Text(doc.id)),
+                                  DataCell(Text(data['name'] ?? '')),
+                                  DataCell(Text(data['mobile'] ?? '')),
+                                  DataCell(Text(data['address'] ?? '')),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _AppScrollBehavior extends MaterialScrollBehavior {
+  const _AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+        PointerDeviceKind.invertedStylus,
+      };
 }

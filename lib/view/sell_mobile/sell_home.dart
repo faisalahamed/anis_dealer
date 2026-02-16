@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter/gestures.dart';
 
 class SellHome extends StatefulWidget {
   const SellHome({super.key});
@@ -12,6 +13,8 @@ class SellHome extends StatefulWidget {
 
 class _SellHomeState extends State<SellHome> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ScrollController _hController = ScrollController();
+  final ScrollController _vController = ScrollController();
 
   String? selectedCustomerId;
   final customerNameController = TextEditingController();
@@ -19,12 +22,16 @@ class _SellHomeState extends State<SellHome> {
   final customerAddressController = TextEditingController();
 
   final List<_SelectedMobile> selectedMobiles = [];
+  final Map<String, TextEditingController> _sellingPriceControllers = {};
 
   @override
   void dispose() {
     customerNameController.dispose();
     customerMobileController.dispose();
     customerAddressController.dispose();
+    for (final c in _sellingPriceControllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -36,9 +43,9 @@ class _SellHomeState extends State<SellHome> {
   }
 
   Future<void> _scanAndAddMobile() async {
-    final code = await Navigator.of(context).push<String?>(
-      MaterialPageRoute(builder: (_) => const _ScanPage()),
-    );
+    final code = await Navigator.of(
+      context,
+    ).push<String?>(MaterialPageRoute(builder: (_) => const _ScanPage()));
 
     if (code == null || code.trim().isEmpty) return;
     await _addImei(code.trim());
@@ -47,16 +54,16 @@ class _SellHomeState extends State<SellHome> {
   Future<void> _addImei(String raw) async {
     final imei = int.tryParse(raw);
     if (imei == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid IMEI')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Invalid IMEI')));
       return;
     }
 
     if (selectedMobiles.any((m) => m.iemi == imei)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('IMEI already added: $imei')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('IMEI already added: $imei')));
       return;
     }
 
@@ -67,9 +74,9 @@ class _SellHomeState extends State<SellHome> {
         .get();
 
     if (query.docs.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('IMEI not found: $imei')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('IMEI not found: $imei')));
       return;
     }
 
@@ -77,14 +84,17 @@ class _SellHomeState extends State<SellHome> {
     final data = doc.data();
     final isSold = (data['isSold'] ?? false) == true;
     if (isSold) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('IMEI already sold: $imei')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('IMEI already sold: $imei')));
       return;
     }
 
     setState(() {
       selectedMobiles.add(_SelectedMobile(doc.id, data));
+      _sellingPriceControllers[doc.id] = TextEditingController(
+        text: '${data['estimatedSellingPrice'] ?? ''}',
+      );
     });
   }
 
@@ -128,7 +138,8 @@ class _SellHomeState extends State<SellHome> {
   num get _totalSellingPrice {
     num total = 0;
     for (final m in selectedMobiles) {
-      total += _toNum(m.data['estimatedSellingPrice']);
+      final controller = _sellingPriceControllers[m.docId];
+      total += _toNum(controller?.text ?? m.data['estimatedSellingPrice']);
     }
     return total;
   }
@@ -141,14 +152,72 @@ class _SellHomeState extends State<SellHome> {
       return;
     }
 
+    num totalBuying = 0;
+    num totalEstimated = 0;
+    num totalSelling = 0;
+    final itemNames = <String>[];
+    final itemIds = <String>[];
+    final imeis = <dynamic>[];
+
     final batch = _firestore.batch();
     for (final item in selectedMobiles) {
       final docRef = _firestore.collection('mobiles').doc(item.docId);
       final data = item.data;
       final buyPrice = _toNum(data['buyPrice']);
       final estimatedSell = _toNum(data['estimatedSellingPrice']);
-      final sellingPrice = estimatedSell;
+      final controller = _sellingPriceControllers[item.docId];
+      final raw = controller?.text.trim() ?? '';
+      if (raw.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Selling price required for IMEI ${data['iemi'] ?? ''}',
+            ),
+          ),
+        );
+        return;
+      }
+      final sellingPrice = _toNum(raw);
+      if (sellingPrice <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Invalid selling price for IMEI ${data['iemi'] ?? ''}',
+            ),
+          ),
+        );
+        return;
+      }
+      final minPrice = buyPrice * 0.90;
+      final maxPrice = buyPrice * 1.20;
+      if (sellingPrice < minPrice) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Selling price too low for IMEI ${data['iemi'] ?? ''}. Min: ${minPrice.toStringAsFixed(2)}',
+            ),
+          ),
+        );
+        return;
+      }
+      if (sellingPrice > maxPrice) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Selling price too high for IMEI ${data['iemi'] ?? ''}. Max: ${maxPrice.toStringAsFixed(2)}',
+            ),
+          ),
+        );
+        return;
+      }
       final profit = sellingPrice - buyPrice;
+
+      totalBuying += buyPrice;
+      totalEstimated += estimatedSell;
+      totalSelling += sellingPrice;
+      itemNames.add('${data['name'] ?? ''}'.trim());
+      itemIds.add(item.docId);
+      imeis.add(data['iemi']);
 
       final saleRef = _firestore.collection('sales').doc();
       batch.set(saleRef, {
@@ -175,28 +244,67 @@ class _SellHomeState extends State<SellHome> {
         'soldToCustomerName': customerNameController.text,
       });
     }
+
+    final receiptRef = _firestore.collection('sales_receipts').doc();
+    batch.set(receiptRef, {
+      'receipt_id': receiptRef.id,
+      'created_at': FieldValue.serverTimestamp(),
+      'customer_id': selectedCustomerId,
+      'customer_name': customerNameController.text,
+      'customer_mobile': customerMobileController.text,
+      'customer_address': customerAddressController.text,
+      'item_names': itemNames.join(', '),
+      'item_ids': itemIds,
+      'imeis': imeis,
+      'item_count': selectedMobiles.length,
+      'total_buying_cost': totalBuying,
+      'total_estimated_cost': totalEstimated,
+      'total_selling_cost': totalSelling,
+      'total_profit': totalSelling - totalBuying,
+    });
+
     await batch.commit();
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sell confirmed')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Sell confirmed')));
     setState(() {
       selectedMobiles.clear();
+      for (final c in _sellingPriceControllers.values) {
+        c.dispose();
+      }
+      _sellingPriceControllers.clear();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sell Mobile')),
+      appBar: AppBar(
+        title: const Text('Sell Mobile'),
+        actions: [
+          TextButton(
+            onPressed: _confirmSell,
+            child: const Text(
+              'Confirm Sell',
+              style: TextStyle(
+                color: Colors.greenAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Select Customer',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'Select Customer',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             StreamBuilder<QuerySnapshot>(
               stream: _firestore.collection('customers').snapshots(),
@@ -213,26 +321,28 @@ class _SellHomeState extends State<SellHome> {
                     final name = (data['name'] ?? '').toString();
                     return DropdownMenuItem(
                       value: doc.id,
-                      child: Text('${doc.id} - $name'),
+                      // child: Text('${doc.id} - $name'),
+                      child: Text(name),
                     );
                   }).toList(),
                   onChanged: (value) {
                     setState(() {
                       selectedCustomerId = value;
-                      final selected =
-                          docs.firstWhere((doc) => doc.id == value);
-                      final data =
-                          selected.data() as Map<String, dynamic>;
-                      customerNameController.text =
-                          (data['name'] ?? '').toString();
-                      customerMobileController.text =
-                          (data['mobile'] ?? '').toString();
-                      customerAddressController.text =
-                          (data['address'] ?? '').toString();
+                      final selected = docs.firstWhere(
+                        (doc) => doc.id == value,
+                      );
+                      final data = selected.data() as Map<String, dynamic>;
+                      customerNameController.text = (data['name'] ?? '')
+                          .toString();
+                      customerMobileController.text = (data['mobile'] ?? '')
+                          .toString();
+                      customerAddressController.text = (data['address'] ?? '')
+                          .toString();
                     });
                   },
-                  decoration:
-                      const InputDecoration(labelText: 'Select Customer'),
+                  decoration: const InputDecoration(
+                    labelText: 'Select Customer',
+                  ),
                 );
               },
             ),
@@ -242,8 +352,9 @@ class _SellHomeState extends State<SellHome> {
                 Expanded(
                   child: TextField(
                     controller: customerNameController,
-                    decoration:
-                        const InputDecoration(labelText: 'Customer Name'),
+                    decoration: const InputDecoration(
+                      labelText: 'Customer Name',
+                    ),
                     readOnly: true,
                   ),
                 ),
@@ -251,8 +362,9 @@ class _SellHomeState extends State<SellHome> {
                 Expanded(
                   child: TextField(
                     controller: customerMobileController,
-                    decoration:
-                        const InputDecoration(labelText: 'Customer Mobile'),
+                    decoration: const InputDecoration(
+                      labelText: 'Customer Mobile',
+                    ),
                     readOnly: true,
                   ),
                 ),
@@ -266,54 +378,92 @@ class _SellHomeState extends State<SellHome> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('s/n')),
-                      DataColumn(label: Text('date_bought')),
-                      DataColumn(label: Text('IEMI')),
-                      DataColumn(label: Text('forign_model_id')),
-                      DataColumn(label: Text('mobile_name')),
-                      DataColumn(label: Text('color')),
-                      DataColumn(label: Text('description')),
-                      DataColumn(label: Text('buy_price')),
-                      DataColumn(label: Text('estimated_Selling_price')),
-                      DataColumn(label: Text('is_sold')),
-                      DataColumn(label: Text('remove')),
-                    ],
-                    rows: List.generate(selectedMobiles.length, (index) {
-                      final item = selectedMobiles[index];
-                      final data = item.data;
-                      return DataRow(
-                        cells: [
-                          DataCell(Text('${index + 1}')),
-                          DataCell(Text(_formatDate(data['createdAt']))),
-                          DataCell(Text('${data['iemi'] ?? ''}')),
-                          DataCell(Text('${data['modelId'] ?? ''}')),
-                          DataCell(Text('${data['name'] ?? ''}')),
-                          DataCell(Text('${data['color'] ?? ''}')),
-                          DataCell(Text('${data['description'] ?? ''}')),
-                          DataCell(Text('${data['buyPrice'] ?? ''}')),
-                          DataCell(
-                              Text('${data['estimatedSellingPrice'] ?? ''}')),
-                          DataCell(
-                              Text((data['isSold'] ?? false) ? 'Yes' : 'No')),
-                          DataCell(
-                            IconButton(
-                              icon: const Icon(Icons.delete, size: 18),
-                              onPressed: () {
-                                setState(() {
-                                  selectedMobiles.removeAt(index);
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    }),
+              child: ScrollConfiguration(
+                behavior: const _AppScrollBehavior(),
+                child: Scrollbar(
+                  controller: _vController,
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    controller: _vController,
+                    scrollDirection: Axis.vertical,
+                    child: Scrollbar(
+                      controller: _hController,
+                      thumbVisibility: true,
+                      notificationPredicate: (notification) =>
+                          notification.metrics.axis == Axis.horizontal,
+                      child: SingleChildScrollView(
+                        controller: _hController,
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          columns: const [
+                            DataColumn(label: Text('s/n')),
+                            DataColumn(label: Text('date_bought')),
+                            DataColumn(label: Text('IEMI')),
+                            DataColumn(label: Text('forign_model_id')),
+                            DataColumn(label: Text('mobile_name')),
+                            DataColumn(label: Text('color')),
+                            DataColumn(label: Text('description')),
+                            DataColumn(label: Text('buy_price')),
+                            DataColumn(label: Text('estimated_Selling_price')),
+                            DataColumn(label: Text('selling_price')),
+                            DataColumn(label: Text('remove')),
+                          ],
+                          rows: List.generate(selectedMobiles.length, (index) {
+                            final item = selectedMobiles[index];
+                            final data = item.data;
+                            return DataRow(
+                              cells: [
+                                DataCell(Text('${index + 1}')),
+                                DataCell(Text(_formatDate(data['createdAt']))),
+                                DataCell(Text('${data['iemi'] ?? ''}')),
+                                DataCell(Text('${data['modelId'] ?? ''}')),
+                                DataCell(Text('${data['name'] ?? ''}')),
+                                DataCell(Text('${data['color'] ?? ''}')),
+                                DataCell(Text('${data['description'] ?? ''}')),
+                                DataCell(Text('${data['buyPrice'] ?? ''}')),
+                                DataCell(
+                                  Text(
+                                    '${data['estimatedSellingPrice'] ?? ''}',
+                                  ),
+                                ),
+                                DataCell(
+                                  SizedBox(
+                                    width: 110,
+                                    child: TextField(
+                                      controller:
+                                          _sellingPriceControllers[item.docId],
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, size: 18),
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedMobiles.removeAt(index);
+                                        final controller =
+                                            _sellingPriceControllers.remove(
+                                              item.docId,
+                                            );
+                                        controller?.dispose();
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            );
+                          }),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -340,11 +490,11 @@ class _SellHomeState extends State<SellHome> {
                   icon: const Icon(Icons.edit),
                   label: const Text('Enter IEMI'),
                 ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  onPressed: _confirmSell,
-                  child: const Text('Confirm Sell'),
-                ),
+                // const SizedBox(width: 12),
+                // ElevatedButton(
+                //   onPressed: _confirmSell,
+                //   child: const Text('Confirm Sell'),
+                // ),
               ],
             ),
           ],
@@ -352,6 +502,19 @@ class _SellHomeState extends State<SellHome> {
       ),
     );
   }
+}
+
+class _AppScrollBehavior extends MaterialScrollBehavior {
+  const _AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+  };
 }
 
 class _SelectedMobile {

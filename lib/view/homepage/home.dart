@@ -1,5 +1,8 @@
+import 'package:anis_dealer/view/bill_management/customer_wise_bill.dart';
 import 'package:anis_dealer/view/customer_view/customer_home.dart';
 import 'package:anis_dealer/view/mobile/mobile_table.dart';
+import 'package:anis_dealer/view/sell_mobile/sales_history_home.dart';
+import 'package:anis_dealer/view/sell_mobile/sales_receipt.dart';
 import 'package:anis_dealer/view/sell_mobile/sell_home.dart';
 import 'package:anis_dealer/view/stock/stock_home.dart';
 import 'package:flutter/material.dart';
@@ -75,6 +78,36 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               },
               child: const Text('Add Customer'),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SalesHistoryHome()),
+                );
+              },
+              child: const Text('View Sales History'),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SalesReceiptHome()),
+                );
+              },
+              child: const Text('View Sales Receipts'),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CustomerWiseBill()),
+                );
+              },
+              child: const Text('View Customer Wise Bills'),
             ),
           ],
         ),

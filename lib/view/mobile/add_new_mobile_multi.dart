@@ -225,9 +225,10 @@ class _AddNewMobileMultiPageState extends State<AddNewMobileMultiPage> {
                   items: docs.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;
                     final modelName = (data['name'] ?? '').toString();
+                    final modelColor = (data['color'] ?? '').toString();
                     return DropdownMenuItem(
                       value: doc.id,
-                      child: Text('${doc.id} - $modelName'),
+                      child: Text('$modelName -$modelColor'),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -289,19 +290,19 @@ class _AddNewMobileMultiPageState extends State<AddNewMobileMultiPage> {
                   (value == null || value.trim().isEmpty) ? 'Required' : null,
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Checkbox(
-                  value: isSold,
-                  onChanged: (value) {
-                    setState(() {
-                      isSold = value ?? false;
-                    });
-                  },
-                ),
-                const Text('Sold'),
-              ],
-            ),
+            // Row(
+            //   children: [
+            //     Checkbox(
+            //       value: isSold,
+            //       onChanged: (value) {
+            //         setState(() {
+            //           isSold = value ?? false;
+            //         });
+            //       },
+            //     ),
+            //     const Text('Sold'),
+            //   ],
+            // ),
             const SizedBox(height: 16),
             const Text('IMEIs', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
