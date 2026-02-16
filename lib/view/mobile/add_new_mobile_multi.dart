@@ -187,7 +187,21 @@ class _AddNewMobileMultiPageState extends State<AddNewMobileMultiPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Mobiles (Multiple IMEI)')),
+      appBar: AppBar(
+        title: const Text('Add new Mobile'),
+        actions: [
+          TextButton(
+            onPressed: isSaving ? null : _save,
+            child: isSaving
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Save', style: TextStyle(color: Colors.green)),
+          ),
+        ],
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -225,8 +239,8 @@ class _AddNewMobileMultiPageState extends State<AddNewMobileMultiPage> {
                       final data = selected.data() as Map<String, dynamic>;
                       nameController.text = (data['name'] ?? '').toString();
                       colorController.text = (data['color'] ?? '').toString();
-                      descriptionController.text =
-                          (data['description'] ?? '').toString();
+                      descriptionController.text = (data['description'] ?? '')
+                          .toString();
                     });
                   },
                   validator: (value) =>
@@ -352,30 +366,19 @@ class _AddNewMobileMultiPageState extends State<AddNewMobileMultiPage> {
                 }),
               ],
             ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 140),
-                child: ElevatedButton.icon(
-                  onPressed: _openAddImeiDialog,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add more'),
-                ),
-              ),
-            ),
+
             const SizedBox(height: 24),
             SizedBox(
               height: 48,
               child: ElevatedButton(
-                onPressed: isSaving ? null : _save,
+                onPressed: _openAddImeiDialog,
                 child: isSaving
                     ? const SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Save'),
+                    : const Text('Add/Scan IMEI'),
               ),
             ),
           ],

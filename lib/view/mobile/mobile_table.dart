@@ -1,6 +1,7 @@
 import 'package:anis_dealer/view/mobile/add_new_mobile_multi.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class MobileTableView extends StatefulWidget {
   const MobileTableView({super.key});
@@ -13,10 +14,7 @@ class _MobileTableViewState extends State<MobileTableView> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String _formatDate(DateTime date) {
-    final y = date.year.toString().padLeft(4, '0');
-    final m = date.month.toString().padLeft(2, '0');
-    final d = date.day.toString().padLeft(2, '0');
-    return '$y-$m-$d';
+    return DateFormat('d MMM h:mm a').format(date);
   }
 
   String _createdAtToString(dynamic value) {
