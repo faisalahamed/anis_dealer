@@ -158,6 +158,7 @@ class _SellHomeState extends State<SellHome> {
     final itemNames = <String>[];
     final itemIds = <String>[];
     final imeis = <dynamic>[];
+    final itemSellingPrices = <num>[];
 
     final batch = _firestore.batch();
     for (final item in selectedMobiles) {
@@ -218,6 +219,7 @@ class _SellHomeState extends State<SellHome> {
       itemNames.add('${data['name'] ?? ''}'.trim());
       itemIds.add(item.docId);
       imeis.add(data['iemi']);
+      itemSellingPrices.add(sellingPrice);
 
       final saleRef = _firestore.collection('sales').doc();
       batch.set(saleRef, {
@@ -254,8 +256,10 @@ class _SellHomeState extends State<SellHome> {
       'customer_mobile': customerMobileController.text,
       'customer_address': customerAddressController.text,
       'item_names': itemNames.join(', '),
+      'item_names_list': itemNames,
       'item_ids': itemIds,
       'imeis': imeis,
+      'item_selling_prices': itemSellingPrices,
       'item_count': selectedMobiles.length,
       'total_buying_cost': totalBuying,
       'total_estimated_cost': totalEstimated,

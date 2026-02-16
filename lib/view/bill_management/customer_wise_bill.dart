@@ -72,22 +72,21 @@ class _CustomerWiseBillState extends State<CustomerWiseBill> {
 
                   t['total_buying_cost'] =
                       (t['total_buying_cost'] as num) +
-                          _toNum(data['total_buying_cost']);
+                      _toNum(data['total_buying_cost']);
                   t['total_estimated_cost'] =
                       (t['total_estimated_cost'] as num) +
-                          _toNum(data['total_estimated_cost']);
+                      _toNum(data['total_estimated_cost']);
                   t['total_selling_cost'] =
                       (t['total_selling_cost'] as num) +
-                          _toNum(data['total_selling_cost']);
+                      _toNum(data['total_selling_cost']);
                   t['total_profit'] =
-                      (t['total_profit'] as num) +
-                          _toNum(data['total_profit']);
+                      (t['total_profit'] as num) + _toNum(data['total_profit']);
 
                   final current = t['last_date'];
                   if (current is Timestamp && data['created_at'] is Timestamp) {
-                    if ((data['created_at'] as Timestamp)
-                        .toDate()
-                        .isAfter(current.toDate())) {
+                    if ((data['created_at'] as Timestamp).toDate().isAfter(
+                      current.toDate(),
+                    )) {
                       t['last_date'] = data['created_at'];
                     }
                   } else if (current == null) {
@@ -113,7 +112,7 @@ class _CustomerWiseBillState extends State<CustomerWiseBill> {
                           dataRowMinHeight: 48,
                           dataRowMaxHeight: 64,
                           columns: const [
-                            DataColumn(label: Text('Customer ID')),
+                            // DataColumn(label: Text('Customer ID')),
                             DataColumn(label: Text('Customer Name')),
                             DataColumn(label: Text('Customer Mobile')),
                             DataColumn(label: Text('Last Bill Date')),
@@ -128,32 +127,46 @@ class _CustomerWiseBillState extends State<CustomerWiseBill> {
                             final totalsRow = totals[doc.id] ?? {};
                             return DataRow(
                               cells: [
-                                DataCell(Text(doc.id)),
+                                // DataCell(Text(doc.id)),
                                 DataCell(Text('${data['name'] ?? ''}')),
                                 DataCell(Text('${data['mobile'] ?? ''}')),
                                 DataCell(
                                   Text(_formatDate(totalsRow['last_date'])),
                                 ),
-                                DataCell(Text(
-                                    '${totalsRow['total_buying_cost'] ?? 0}')),
-                                DataCell(Text(
-                                    '${totalsRow['total_estimated_cost'] ?? 0}')),
-                                DataCell(Text(
-                                    '${totalsRow['total_selling_cost'] ?? 0}')),
-                                DataCell(Text(
-                                    '${totalsRow['total_profit'] ?? 0}')),
+                                DataCell(
+                                  Text(
+                                    '${totalsRow['total_buying_cost'] ?? 0}',
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    '${totalsRow['total_estimated_cost'] ?? 0}',
+                                  ),
+                                ),
+                                DataCell(
+                                  Text(
+                                    '${totalsRow['total_selling_cost'] ?? 0}',
+                                  ),
+                                ),
+                                DataCell(
+                                  Text('${totalsRow['total_profit'] ?? 0}'),
+                                ),
                                 DataCell(
                                   IconButton(
-                                    icon: const Icon(Icons.visibility, size: 18),
+                                    icon: const Icon(
+                                      Icons.visibility,
+                                      size: 18,
+                                    ),
                                     onPressed: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (_) => CustomerBillDetails(
                                             customerId: doc.id,
-                                            customerName:
-                                                (data['name'] ?? '').toString(),
+                                            customerName: (data['name'] ?? '')
+                                                .toString(),
                                             customerMobile:
-                                                (data['mobile'] ?? '').toString(),
+                                                (data['mobile'] ?? '')
+                                                    .toString(),
                                           ),
                                         ),
                                       );
@@ -182,10 +195,10 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.invertedStylus,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+  };
 }

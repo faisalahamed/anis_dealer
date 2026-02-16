@@ -114,7 +114,7 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
                       columns: const [
-                        DataColumn(label: Text('Selling ID')),
+                        // DataColumn(label: Text('Selling ID')),
                         DataColumn(label: Text('Selling Date')),
                         DataColumn(label: Text('Mobile ID')),
                         DataColumn(label: Text('Mobile Name')),
@@ -133,20 +133,25 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
                         final data = doc.data() as Map<String, dynamic>;
                         return DataRow(
                           cells: [
-                            DataCell(Text('${data['selling_id'] ?? doc.id}')),
+                            // DataCell(Text('${data['selling_id'] ?? doc.id}')),
                             DataCell(Text(_formatDate(data['selling_date']))),
                             DataCell(Text('${data['forign_mobile_id'] ?? ''}')),
                             DataCell(Text('${data['f_mobile_name'] ?? ''}')),
                             DataCell(Text('${data['f_color'] ?? ''}')),
                             DataCell(Text('${data['f_iemi'] ?? ''}')),
                             DataCell(Text('${data['f_buying_price'] ?? ''}')),
-                            DataCell(Text(
-                                '${data['f_estimated_selling_price'] ?? ''}')),
+                            DataCell(
+                              Text(
+                                '${data['f_estimated_selling_price'] ?? ''}',
+                              ),
+                            ),
                             DataCell(Text('${data['selling_price'] ?? ''}')),
                             DataCell(Text('${data['profit'] ?? ''}')),
                             DataCell(Text('${data['f_customer_id'] ?? ''}')),
                             DataCell(Text('${data['f_customer_name'] ?? ''}')),
-                            DataCell(Text('${data['f_customer_mobile'] ?? ''}')),
+                            DataCell(
+                              Text('${data['f_customer_mobile'] ?? ''}'),
+                            ),
                             DataCell(
                               IconButton(
                                 icon: const Icon(Icons.edit, size: 18),
@@ -174,10 +179,10 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.invertedStylus,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+  };
 }

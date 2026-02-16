@@ -33,10 +33,39 @@ class _SalesReceiptHomeState extends State<SalesReceiptHome> {
     return value.toString();
   }
 
+  String _formatItemNamesWithPrices(Map<String, dynamic> data) {
+    final namesRaw = data['item_names_list'];
+    final pricesRaw = data['item_selling_prices'];
+
+    final names = <String>[];
+    if (namesRaw is Iterable) {
+      names.addAll(namesRaw.map((e) => e.toString()));
+    } else {
+      final fallback = (data['item_names'] ?? '').toString();
+      if (fallback.isNotEmpty) {
+        names.addAll(fallback.split(', ').map((e) => e.trim()));
+      }
+    }
+
+    final prices = <String>[];
+    if (pricesRaw is Iterable) {
+      prices.addAll(pricesRaw.map((e) => e.toString()));
+    }
+
+    if (prices.isNotEmpty && prices.length == names.length) {
+      return List.generate(
+        names.length,
+        (i) => '${names[i]} (${prices[i]})',
+      ).join(', ');
+    }
+
+    return names.join(', ');
+  }
+
   Future<void> _printReceipt(Map<String, dynamic> data) async {
     final doc = pw.Document();
 
-    final itemNames = (data['item_names'] ?? '').toString();
+    final itemNames = _formatItemNamesWithPrices(data);
     final imeis = _formatImeis(data['imeis']);
     final dateText = _formatDate(data['created_at']);
 
@@ -177,7 +206,7 @@ class _SalesReceiptHomeState extends State<SalesReceiptHome> {
                             DataCell(Text('${data['customer_mobile'] ?? ''}')),
                             // DataCell(Text('${data['customer_address'] ?? ''}')),
                             DataCell(
-                              _ellipsisCell('${data['item_names'] ?? ''}'),
+                              _ellipsisCell(_formatItemNamesWithPrices(data)),
                             ),
                             DataCell(
                               _ellipsisCell(_formatImeis(data['imeis'])),

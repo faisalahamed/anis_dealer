@@ -73,7 +73,7 @@ class _StockHomeState extends State<StockHome> {
                     child: DataTable(
                       columns: const [
                         DataColumn(label: Text('Stock ID')),
-                        DataColumn(label: Text('Model ID')),
+                        // DataColumn(label: Text('Model ID')),
                         DataColumn(label: Text('Mobile Name')),
                         DataColumn(label: Text('Color')),
                         DataColumn(label: Text('Description')),
@@ -84,7 +84,7 @@ class _StockHomeState extends State<StockHome> {
                         return DataRow(
                           cells: [
                             DataCell(Text('${index + 1}')),
-                            DataCell(Text(item['modelId'] ?? '')),
+                            // DataCell(Text(item['modelId'] ?? '')),
                             DataCell(Text(item['name'] ?? '')),
                             DataCell(Text(item['color'] ?? '')),
                             DataCell(Text(item['description'] ?? '')),
@@ -109,10 +109,10 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.invertedStylus,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+  };
 }

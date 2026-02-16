@@ -38,7 +38,9 @@ class _CustomerHomeState extends State<CustomerHome> {
               ),
               TextField(
                 controller: addressController,
-                decoration: const InputDecoration(labelText: 'Customer Address'),
+                decoration: const InputDecoration(
+                  labelText: 'Customer Address',
+                ),
               ),
             ],
           ),
@@ -119,7 +121,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                           child: DataTable(
                             columnSpacing: 24,
                             columns: const [
-                              DataColumn(label: Text('Customer ID')),
+                              // DataColumn(label: Text('Customer ID')),
                               DataColumn(label: Text('Customer Name')),
                               DataColumn(label: Text('Customer Mobile')),
                               DataColumn(label: Text('Customer Address')),
@@ -128,7 +130,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                               final data = doc.data() as Map<String, dynamic>;
                               return DataRow(
                                 cells: [
-                                  DataCell(Text(doc.id)),
+                                  // DataCell(Text(doc.id)),
                                   DataCell(Text(data['name'] ?? '')),
                                   DataCell(Text(data['mobile'] ?? '')),
                                   DataCell(Text(data['address'] ?? '')),
@@ -155,10 +157,10 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.invertedStylus,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+  };
 }

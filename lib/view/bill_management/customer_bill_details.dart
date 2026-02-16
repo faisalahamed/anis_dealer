@@ -206,7 +206,7 @@ class _CustomerBillDetailsState extends State<CustomerBillDetails> {
                             dataRowMinHeight: 48,
                             dataRowMaxHeight: 64,
                             columns: const [
-                              DataColumn(label: Text('Receipt ID')),
+                              // DataColumn(label: Text('Receipt ID')),
                               DataColumn(label: Text('Date')),
                               DataColumn(label: Text('Item Names')),
                               DataColumn(label: Text('IMEIs')),
@@ -220,9 +220,9 @@ class _CustomerBillDetailsState extends State<CustomerBillDetails> {
                               final data = doc.data() as Map<String, dynamic>;
                               return DataRow(
                                 cells: [
-                                  DataCell(
-                                    Text('${data['receipt_id'] ?? doc.id}'),
-                                  ),
+                                  // DataCell(
+                                  //   Text('${data['receipt_id'] ?? doc.id}'),
+                                  // ),
                                   DataCell(
                                     Text(_formatDate(data['created_at'])),
                                   ),

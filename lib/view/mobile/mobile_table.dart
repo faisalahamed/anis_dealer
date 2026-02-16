@@ -87,7 +87,7 @@ class _MobileTableViewState extends State<MobileTableView> {
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
                             columns: const [
-                              DataColumn(label: Text('Mobile ID')),
+                              // DataColumn(label: Text('Mobile ID')),
                               DataColumn(label: Text('Date')),
                               DataColumn(label: Text('IEMI')),
                               DataColumn(label: Text('Model ID')),
@@ -103,7 +103,7 @@ class _MobileTableViewState extends State<MobileTableView> {
 
                               return DataRow(
                                 cells: [
-                                  DataCell(Text(doc.id)),
+                                  // DataCell(Text(doc.id)),
                                   DataCell(
                                     Text(_createdAtToString(data['createdAt'])),
                                   ),
@@ -111,16 +111,19 @@ class _MobileTableViewState extends State<MobileTableView> {
                                   DataCell(Text('${data['modelId'] ?? ''}')),
                                   DataCell(Text('${data['name'] ?? ''}')),
                                   DataCell(Text('${data['color'] ?? ''}')),
-                                  DataCell(Text('${data['description'] ?? ''}')),
+                                  DataCell(
+                                    Text('${data['description'] ?? ''}'),
+                                  ),
                                   DataCell(Text('${data['buyPrice'] ?? ''}')),
                                   DataCell(
                                     Text(
-                                        '${data['estimatedSellingPrice'] ?? ''}'),
+                                      '${data['estimatedSellingPrice'] ?? ''}',
+                                    ),
                                   ),
                                   DataCell(
-                                    Text((data['isSold'] ?? false)
-                                        ? 'Yes'
-                                        : 'No'),
+                                    Text(
+                                      (data['isSold'] ?? false) ? 'Yes' : 'No',
+                                    ),
                                   ),
                                 ],
                               );
@@ -145,10 +148,10 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.invertedStylus,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+  };
 }
