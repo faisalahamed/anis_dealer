@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class StockHome extends StatefulWidget {
@@ -8,47 +9,78 @@ class StockHome extends StatefulWidget {
 }
 
 class _StockHomeState extends State<StockHome> {
-  final List<Map<String, String>> stockData = [
-    {'stock_id': '1', 'forign_model_id': '1', 'Mobile Name': 'Hot 60 4/128', 'Color': 'Black', 'description': 'camera24 pixel, battery 6000 Amp', 'Stock Count': '3', 'Coverage/Booked': ''},
-    {'stock_id': '2', 'forign_model_id': '2', 'Mobile Name': 'Hot 60 8/128', 'Color': 'Black', 'description': 'camera24 pixel, battery 6000 Amp', 'Stock Count': '4', 'Coverage/Booked': ''},
-    {'stock_id': '3', 'forign_model_id': '20', 'Mobile Name': 'Infinix 14 pro max 12/128', 'Color': 'Green', 'description': 'camera24 pixel, battery 6000 Amp', 'Stock Count': '4', 'Coverage/Booked': ''},
-    {'stock_id': '4', 'forign_model_id': '16', 'Mobile Name': 'Redmi 12 12/128', 'Color': 'yellow', 'description': 'camera24 pixel, battery 6000 Amp', 'Stock Count': '2', 'Coverage/Booked': ''},
-    {'stock_id': '5', 'forign_model_id': '17', 'Mobile Name': 'Redmi 12 4/128', 'Color': 'Green', 'description': 'camera24 pixel, battery 6000 Amp', 'Stock Count': '1', 'Coverage/Booked': ''},
-  ];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Stock Management')),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: DataTable(
-            columns: [
-              DataColumn(label: Text('Stock ID')),
-              DataColumn(label: Text('Model ID')),
-              DataColumn(label: Text('Mobile Name')),
-              DataColumn(label: Text('Color')),
-              DataColumn(label: Text('Description')),
-              DataColumn(label: Text('Stock Count')),
-              DataColumn(label: Text('Coverage/Booked')),
-            ],
-            rows: stockData
-                .map(
-                  (item) => DataRow(cells: [
-                    DataCell(Text(item['stock_id'] ?? '')),
-                    DataCell(Text(item['forign_model_id'] ?? '')),
-                    DataCell(Text(item['Mobile Name'] ?? '')),
-                    DataCell(Text(item['Color'] ?? '')),
-                    DataCell(Text(item['description'] ?? '')),
-                    DataCell(Text(item['Stock Count'] ?? '')),
-                    DataCell(Text(item['Coverage/Booked'] ?? '')),
-                  ]),
-                )
-                .toList(),
-          ),
-        ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firestore.collection('mobiles').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No Stock Found'));
+          }
+
+          final Map<String, Map<String, dynamic>> grouped = {};
+          for (final doc in snapshot.data!.docs) {
+            final data = doc.data() as Map<String, dynamic>;
+            final isSold = (data['isSold'] ?? false) == true;
+            if (isSold) continue;
+            final modelId = (data['modelId'] ?? '').toString();
+            if (modelId.isEmpty) continue;
+
+            final existing = grouped[modelId];
+            if (existing == null) {
+              grouped[modelId] = {
+                'modelId': modelId,
+                'name': (data['name'] ?? '').toString(),
+                'color': (data['color'] ?? '').toString(),
+                'description': (data['description'] ?? '').toString(),
+                'count': 1,
+              };
+            } else {
+              existing['count'] = (existing['count'] as int) + 1;
+            }
+          }
+
+          final rows = grouped.values.toList()
+            ..sort((a, b) => a['modelId'].compareTo(b['modelId']));
+
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('Stock ID')),
+                  DataColumn(label: Text('Model ID')),
+                  DataColumn(label: Text('Mobile Name')),
+                  DataColumn(label: Text('Color')),
+                  DataColumn(label: Text('Description')),
+                  DataColumn(label: Text('Stock Count')),
+                ],
+                rows: List.generate(rows.length, (index) {
+                  final item = rows[index];
+                  return DataRow(
+                    cells: [
+                      DataCell(Text('${index + 1}')),
+                      DataCell(Text(item['modelId'] ?? '')),
+                      DataCell(Text(item['name'] ?? '')),
+                      DataCell(Text(item['color'] ?? '')),
+                      DataCell(Text(item['description'] ?? '')),
+                      DataCell(Text('${item['count'] ?? 0}')),
+                    ],
+                  );
+                }),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
