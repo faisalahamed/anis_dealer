@@ -401,12 +401,12 @@ class _SellHomeState extends State<SellHome> {
                         child: DataTable(
                           columns: const [
                             DataColumn(label: Text('s/n')),
-                            DataColumn(label: Text('date_bought')),
+                            // DataColumn(label: Text('date_bought')),
                             DataColumn(label: Text('IEMI')),
-                            DataColumn(label: Text('forign_model_id')),
+                            // DataColumn(label: Text('forign_model_id')),
                             DataColumn(label: Text('mobile_name')),
                             DataColumn(label: Text('color')),
-                            DataColumn(label: Text('description')),
+                            // DataColumn(label: Text('description')),
                             DataColumn(label: Text('buy_price')),
                             DataColumn(label: Text('estimated_Selling_price')),
                             DataColumn(label: Text('selling_price')),
@@ -418,12 +418,12 @@ class _SellHomeState extends State<SellHome> {
                             return DataRow(
                               cells: [
                                 DataCell(Text('${index + 1}')),
-                                DataCell(Text(_formatDate(data['createdAt']))),
+                                // DataCell(Text(_formatDate(data['createdAt']))),
                                 DataCell(Text('${data['iemi'] ?? ''}')),
-                                DataCell(Text('${data['modelId'] ?? ''}')),
+                                // DataCell(Text('${data['modelId'] ?? ''}')),
                                 DataCell(Text('${data['name'] ?? ''}')),
                                 DataCell(Text('${data['color'] ?? ''}')),
-                                DataCell(Text('${data['description'] ?? ''}')),
+                                // DataCell(Text('${data['description'] ?? ''}')),
                                 DataCell(Text('${data['buyPrice'] ?? ''}')),
                                 DataCell(
                                   Text(

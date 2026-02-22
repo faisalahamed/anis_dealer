@@ -80,14 +80,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       Expanded(
                         child: _NavTile(
                           icon: Icons.playlist_add_check_circle,
-                          label: 'কেনার খাতা',
+                          label: 'All Mobile List',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ModelView(),
-                              ),
-                            );
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => const ModelView(),
+                            //   ),
+                            // );
                           },
                         ),
                       ),
@@ -161,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Expanded(
                         child: _NavTile(
                           icon: Icons.playlist_add_check_circle,
-                          label: 'Add new MODEL of Mobile',
+                          label: 'Add new MODEL',
                           onTap: () {
                             Navigator.push(
                               context,
@@ -207,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Expanded(
                         child: _NavTile(
                           icon: Icons.request_quote,
-                          label: 'Dummy-3',
+                          label: 'Return Mobile',
                           onTap: () {},
                         ),
                       ),

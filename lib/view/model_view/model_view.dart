@@ -69,6 +69,96 @@ class _ModelViewState extends State<ModelView> {
     );
   }
 
+  void _showEditModelDialog(String docId, Map<String, dynamic> data) {
+    final nameController = TextEditingController(text: data['name'] ?? '');
+    final colorController = TextEditingController(text: data['color'] ?? '');
+    final descriptionController = TextEditingController(
+      text: data['description'] ?? '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Model'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Model Name'),
+              ),
+              TextField(
+                controller: colorController,
+                decoration: const InputDecoration(labelText: 'Color'),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isNotEmpty &&
+                  colorController.text.isNotEmpty &&
+                  descriptionController.text.isNotEmpty) {
+                await _firestore.collection('models').doc(docId).update({
+                  'name': nameController.text,
+                  'color': colorController.text,
+                  'description': descriptionController.text,
+                  'updatedAt': FieldValue.serverTimestamp(),
+                });
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteModel(String docId, String modelName) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(modelName),
+        content: const Text('Do you want to delete this model?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      await _firestore.collection('models').doc(docId).delete();
+    }
+  }
+
+  @override
+  void dispose() {
+    _hController.dispose();
+    _vController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,6 +210,7 @@ class _ModelViewState extends State<ModelView> {
                               DataColumn(label: Text('Model Name')),
                               DataColumn(label: Text('Color')),
                               DataColumn(label: Text('Description')),
+                              DataColumn(label: Text('Actions')),
                             ],
                             rows: docs.map((doc) {
                               final data = doc.data() as Map<String, dynamic>;
@@ -130,6 +221,29 @@ class _ModelViewState extends State<ModelView> {
                                   DataCell(Text(data['name'] ?? '')),
                                   DataCell(Text(data['color'] ?? '')),
                                   DataCell(Text(data['description'] ?? '')),
+                                  DataCell(
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          tooltip: 'Edit',
+                                          icon: const Icon(Icons.edit),
+                                          onPressed: () => _showEditModelDialog(
+                                            doc.id,
+                                            data,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          tooltip: 'Delete',
+                                          icon: const Icon(Icons.delete),
+                                          onPressed: () => _deleteModel(
+                                            doc.id,
+                                            data['name'] ?? '',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               );
                             }).toList(),
@@ -153,10 +267,10 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.invertedStylus,
-      };
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+  };
 }

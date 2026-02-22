@@ -71,6 +71,98 @@ class _CustomerHomeState extends State<CustomerHome> {
     );
   }
 
+  void _showEditCustomerDialog(String docId, Map<String, dynamic> data) {
+    final nameController = TextEditingController(text: data['name'] ?? '');
+    final mobileController = TextEditingController(text: data['mobile'] ?? '');
+    final addressController = TextEditingController(
+      text: data['address'] ?? '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Customer'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Customer Name'),
+              ),
+              TextField(
+                controller: mobileController,
+                decoration: const InputDecoration(labelText: 'Customer Mobile'),
+                keyboardType: TextInputType.phone,
+              ),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(
+                  labelText: 'Customer Address',
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (nameController.text.isNotEmpty &&
+                  mobileController.text.isNotEmpty &&
+                  addressController.text.isNotEmpty) {
+                await _firestore.collection('customers').doc(docId).update({
+                  'name': nameController.text,
+                  'mobile': mobileController.text,
+                  'address': addressController.text,
+                  'updatedAt': FieldValue.serverTimestamp(),
+                });
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteCustomer(String docId, String customerName) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(customerName),
+        content: const Text('Do you want to delete this customer?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      await _firestore.collection('customers').doc(docId).delete();
+    }
+  }
+
+  @override
+  void dispose() {
+    _hController.dispose();
+    _vController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -125,6 +217,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                               DataColumn(label: Text('Customer Name')),
                               DataColumn(label: Text('Customer Mobile')),
                               DataColumn(label: Text('Customer Address')),
+                              DataColumn(label: Text('Actions')),
                             ],
                             rows: docs.map((doc) {
                               final data = doc.data() as Map<String, dynamic>;
@@ -134,6 +227,30 @@ class _CustomerHomeState extends State<CustomerHome> {
                                   DataCell(Text(data['name'] ?? '')),
                                   DataCell(Text(data['mobile'] ?? '')),
                                   DataCell(Text(data['address'] ?? '')),
+                                  DataCell(
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          tooltip: 'Edit',
+                                          icon: const Icon(Icons.edit),
+                                          onPressed: () =>
+                                              _showEditCustomerDialog(
+                                                doc.id,
+                                                data,
+                                              ),
+                                        ),
+                                        IconButton(
+                                          tooltip: 'Delete',
+                                          icon: const Icon(Icons.delete),
+                                          onPressed: () => _deleteCustomer(
+                                            doc.id,
+                                            data['name'] ?? '',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               );
                             }).toList(),
