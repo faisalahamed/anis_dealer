@@ -32,6 +32,20 @@ class _MobileTableViewState extends State<MobileTableView> {
     return '';
   }
 
+  Widget _copyableText(String value) {
+    return SelectableText(
+      value,
+      enableInteractiveSelection: true,
+    );
+  }
+
+  bool _isSoldValue(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value == 1;
+    if (value is String) return value.toLowerCase() == 'true';
+    return false;
+  }
+
   int _compareDocs(
     QueryDocumentSnapshot a,
     QueryDocumentSnapshot b,
@@ -51,8 +65,8 @@ class _MobileTableViewState extends State<MobileTableView> {
         result = aVal.compareTo(bVal);
         break;
       case 'isSold':
-        final aVal = (aData['isSold'] ?? false) == true ? 1 : 0;
-        final bVal = (bData['isSold'] ?? false) == true ? 1 : 0;
+        final aVal = _isSoldValue(aData['isSold']) ? 1 : 0;
+        final bVal = _isSoldValue(bData['isSold']) ? 1 : 0;
         result = aVal.compareTo(bVal);
         break;
       case 'createdAt':
@@ -113,14 +127,17 @@ class _MobileTableViewState extends State<MobileTableView> {
                 ),
                 TextField(
                   controller: nameController,
+                  readOnly: true,
                   decoration: const InputDecoration(labelText: 'Mobile Name'),
                 ),
                 TextField(
                   controller: colorController,
+                  readOnly: true,
                   decoration: const InputDecoration(labelText: 'Color'),
                 ),
                 TextField(
                   controller: buyPriceController,
+                  readOnly: true,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: 'Buy Price'),
                 ),
@@ -266,11 +283,20 @@ class _MobileTableViewState extends State<MobileTableView> {
                     return const Center(child: Text('No Mobiles Found'));
                   }
 
-                  final docs = List<QueryDocumentSnapshot>.from(
-                    snapshot.data!.docs,
-                  )..sort(
-                      (a, b) => _compareDocs(a, b, _sortField, _sortAscending),
-                    );
+                  final docs =
+                      List<QueryDocumentSnapshot>.from(
+                        snapshot.data!.docs.where((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          return !_isSoldValue(data['isSold']);
+                        }),
+                      )..sort(
+                        (a, b) =>
+                            _compareDocs(a, b, _sortField, _sortAscending),
+                      );
+
+                  if (docs.isEmpty) {
+                    return const Center(child: Text('No Unsold Mobiles Found'));
+                  }
                   final totalRows = docs.length;
                   final totalPages = totalRows == 0
                       ? 1
@@ -315,11 +341,8 @@ class _MobileTableViewState extends State<MobileTableView> {
                                   // DataColumn(label: Text('Model ID')),
                                   DataColumn(
                                     label: const Text('Mobile Name'),
-                                    onSort: (columnIndex, ascending) => _onSort(
-                                      columnIndex,
-                                      'name',
-                                      ascending,
-                                    ),
+                                    onSort: (columnIndex, ascending) =>
+                                        _onSort(columnIndex, 'name', ascending),
                                   ),
                                   DataColumn(
                                     label: const Text('Color'),
@@ -347,14 +370,14 @@ class _MobileTableViewState extends State<MobileTableView> {
                                       ascending,
                                     ),
                                   ),
-                                  DataColumn(
-                                    label: const Text('Sold'),
-                                    onSort: (columnIndex, ascending) => _onSort(
-                                      columnIndex,
-                                      'isSold',
-                                      ascending,
-                                    ),
-                                  ),
+                                  // DataColumn(
+                                  //   label: const Text('Sold'),
+                                  //   onSort: (columnIndex, ascending) => _onSort(
+                                  //     columnIndex,
+                                  //     'isSold',
+                                  //     ascending,
+                                  //   ),
+                                  // ),
                                   DataColumn(
                                     label: const Text('Date'),
                                     onSort: (columnIndex, ascending) => _onSort(
@@ -380,32 +403,40 @@ class _MobileTableViewState extends State<MobileTableView> {
                                   return DataRow(
                                     cells: [
                                       // DataCell(Text(doc.id)),
-                                      DataCell(Text('${data['iemi'] ?? ''}')),
-                                      // DataCell(Text('${data['modelId'] ?? ''}')),
-                                      DataCell(Text('${data['name'] ?? ''}')),
-                                      DataCell(Text('${data['color'] ?? ''}')),
                                       DataCell(
-                                        Text('${data['buyPrice'] ?? ''}'),
+                                        _copyableText('${data['iemi'] ?? ''}'),
+                                      ),
+                                      // DataCell(Text('${data['modelId'] ?? ''}')),
+                                      DataCell(
+                                        _copyableText('${data['name'] ?? ''}'),
                                       ),
                                       DataCell(
-                                        Text(
+                                        _copyableText('${data['color'] ?? ''}'),
+                                      ),
+                                      DataCell(
+                                        _copyableText('${data['buyPrice'] ?? ''}'),
+                                      ),
+                                      DataCell(
+                                        _copyableText(
                                           '${data['estimatedSellingPrice'] ?? ''}',
                                         ),
                                       ),
+                                      // DataCell(
+                                      //   Text(
+                                      //     _isSoldValue(data['isSold'])
+                                      //         ? 'Yes'
+                                      //         : 'No',
+                                      //   ),
+                                      // ),
                                       DataCell(
-                                        Text(
-                                          (data['isSold'] ?? false)
-                                              ? 'Yes'
-                                              : 'No',
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Text(
+                                        _copyableText(
                                           _createdAtToString(data['createdAt']),
                                         ),
                                       ),
                                       DataCell(
-                                        Text('${data['description'] ?? ''}'),
+                                        _copyableText(
+                                          '${data['description'] ?? ''}',
+                                        ),
                                       ),
                                       DataCell(
                                         Row(
@@ -463,12 +494,15 @@ class _MobileTableViewState extends State<MobileTableView> {
                                     },
                                   ),
                                   const SizedBox(width: 16),
-                                  Text('Page ${currentPage + 1} of $totalPages'),
+                                  Text(
+                                    'Page ${currentPage + 1} of $totalPages',
+                                  ),
                                   IconButton(
                                     tooltip: 'First page',
                                     onPressed: currentPage == 0
                                         ? null
-                                        : () => setState(() => _currentPage = 0),
+                                        : () =>
+                                              setState(() => _currentPage = 0),
                                     icon: const Icon(Icons.first_page),
                                   ),
                                   IconButton(
@@ -476,7 +510,8 @@ class _MobileTableViewState extends State<MobileTableView> {
                                     onPressed: currentPage == 0
                                         ? null
                                         : () => setState(
-                                            () => _currentPage = currentPage - 1,
+                                            () =>
+                                                _currentPage = currentPage - 1,
                                           ),
                                     icon: const Icon(Icons.navigate_before),
                                   ),
@@ -485,7 +520,8 @@ class _MobileTableViewState extends State<MobileTableView> {
                                     onPressed: currentPage >= totalPages - 1
                                         ? null
                                         : () => setState(
-                                            () => _currentPage = currentPage + 1,
+                                            () =>
+                                                _currentPage = currentPage + 1,
                                           ),
                                     icon: const Icon(Icons.navigate_next),
                                   ),

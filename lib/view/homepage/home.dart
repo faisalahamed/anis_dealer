@@ -1,6 +1,8 @@
 import 'package:anis_dealer/view/bill_management/customer_wise_bill.dart';
 import 'package:anis_dealer/view/customer_view/customer_home.dart';
-import 'package:anis_dealer/view/mobile/mobile_table.dart';
+import 'package:anis_dealer/view/mobile/add_mobile_home.dart';
+import 'package:anis_dealer/view/mobile/add_new_mobile_multi.dart';
+import 'package:anis_dealer/view/mobile/all_mobile_list.dart';
 import 'package:anis_dealer/view/model_view/model_view.dart';
 import 'package:anis_dealer/view/sell_mobile/sales_history_home.dart';
 import 'package:anis_dealer/view/sell_mobile/sales_receipt.dart';
@@ -40,10 +42,16 @@ class _MyHomePageState extends State<MyHomePage> {
                       icon: Icons.inventory_2,
                       label: 'কেনা',
                       onTap: () {
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => MobileTableView(),
+                        //   ),
+                        // );
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => MobileTableView(),
+                            builder: (context) => AddNewMobileMultiPage(),
                           ),
                         );
                       },
@@ -82,12 +90,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           icon: Icons.playlist_add_check_circle,
                           label: 'All Mobile List',
                           onTap: () {
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) => const ModelView(),
-                            //   ),
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AllMobileView(),
+                              ),
+                            );
                           },
                         ),
                       ),
