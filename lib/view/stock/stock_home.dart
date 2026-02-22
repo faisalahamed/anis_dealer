@@ -13,6 +13,43 @@ class _StockHomeState extends State<StockHome> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final ScrollController _hController = ScrollController();
   final ScrollController _vController = ScrollController();
+  int? _sortColumnIndex = 1;
+  bool _sortAscending = true;
+  String _sortField = 'name';
+
+  int _compareRows(
+    Map<String, dynamic> a,
+    Map<String, dynamic> b,
+    String field,
+    bool ascending,
+  ) {
+    int result;
+    if (field == 'count') {
+      final aVal = (a[field] ?? 0) as int;
+      final bVal = (b[field] ?? 0) as int;
+      result = aVal.compareTo(bVal);
+    } else {
+      final aVal = (a[field] ?? '').toString().toLowerCase();
+      final bVal = (b[field] ?? '').toString().toLowerCase();
+      result = aVal.compareTo(bVal);
+    }
+    return ascending ? result : -result;
+  }
+
+  void _onSort(int columnIndex, String field, bool ascending) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortField = field;
+      _sortAscending = ascending;
+    });
+  }
+
+  @override
+  void dispose() {
+    _hController.dispose();
+    _vController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +91,7 @@ class _StockHomeState extends State<StockHome> {
             }
 
             final rows = grouped.values.toList()
-              ..sort((a, b) => a['modelId'].compareTo(b['modelId']));
+              ..sort((a, b) => _compareRows(a, b, _sortField, _sortAscending));
 
             return Scrollbar(
               controller: _vController,
@@ -71,13 +108,32 @@ class _StockHomeState extends State<StockHome> {
                     controller: _hController,
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
-                      columns: const [
+                      sortColumnIndex: _sortColumnIndex,
+                      sortAscending: _sortAscending,
+                      columns: [
                         DataColumn(label: Text('Stock ID')),
                         // DataColumn(label: Text('Model ID')),
-                        DataColumn(label: Text('Mobile Name')),
-                        DataColumn(label: Text('Color')),
-                        DataColumn(label: Text('Description')),
-                        DataColumn(label: Text('Stock Count')),
+                        DataColumn(
+                          label: const Text('Mobile Name'),
+                          onSort: (columnIndex, ascending) =>
+                              _onSort(columnIndex, 'name', ascending),
+                        ),
+                        DataColumn(
+                          label: const Text('Color'),
+                          onSort: (columnIndex, ascending) =>
+                              _onSort(columnIndex, 'color', ascending),
+                        ),
+                        DataColumn(
+                          label: const Text('Description'),
+                          onSort: (columnIndex, ascending) =>
+                              _onSort(columnIndex, 'description', ascending),
+                        ),
+                        DataColumn(
+                          label: const Text('Stock Count'),
+                          numeric: true,
+                          onSort: (columnIndex, ascending) =>
+                              _onSort(columnIndex, 'count', ascending),
+                        ),
                       ],
                       rows: List.generate(rows.length, (index) {
                         final item = rows[index];
