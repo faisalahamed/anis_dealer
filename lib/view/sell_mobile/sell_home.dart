@@ -135,14 +135,32 @@ class _SellHomeState extends State<SellHome> {
     return 0;
   }
 
-  num get _totalSellingPrice {
+  num get _totalEstimatedSellingPrice {
     num total = 0;
     for (final m in selectedMobiles) {
-      final controller = _sellingPriceControllers[m.docId];
-      total += _toNum(controller?.text ?? m.data['estimatedSellingPrice']);
+      total += _toNum(m.data['estimatedSellingPrice']);
     }
     return total;
   }
+
+  num get _totalInputSellingPrice {
+    num total = 0;
+    for (final m in selectedMobiles) {
+      final controller = _sellingPriceControllers[m.docId];
+      total += _toNum(controller?.text ?? 0);
+    }
+    return total;
+  }
+
+  num get _totalBuyingPrice {
+    num total = 0;
+    for (final m in selectedMobiles) {
+      total += _toNum(m.data['buyPrice']);
+    }
+    return total;
+  }
+
+  num get _totalProfitOrLoss => _totalInputSellingPrice - _totalBuyingPrice;
 
   Future<void> _confirmSell() async {
     if (selectedCustomerId == null || selectedMobiles.isEmpty) {
@@ -437,6 +455,7 @@ class _SellHomeState extends State<SellHome> {
                                       controller:
                                           _sellingPriceControllers[item.docId],
                                       keyboardType: TextInputType.number,
+                                      onChanged: (_) => setState(() {}),
                                       decoration: const InputDecoration(
                                         isDense: true,
                                         contentPadding: EdgeInsets.symmetric(
@@ -473,11 +492,41 @@ class _SellHomeState extends State<SellHome> {
               ),
             ),
             const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Total Buying Price: $_totalBuyingPrice',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Total Estimated selling Price: $_totalEstimatedSellingPrice',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
               child: Text(
-                'Total selling Price: $_totalSellingPrice',
+                'Total Inputed selling Price: $_totalInputSellingPrice',
                 style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                _totalProfitOrLoss >= 0
+                    ? 'Total Profit: ${_totalProfitOrLoss.toStringAsFixed(2)}'
+                    : 'Total Loss: ${_totalProfitOrLoss.abs().toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: _totalProfitOrLoss >= 0 ? Colors.green : Colors.red,
+                ),
               ),
             ),
             const SizedBox(height: 12),
