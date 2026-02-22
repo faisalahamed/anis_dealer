@@ -184,7 +184,7 @@ class _SalesReceiptHomeState extends State<SalesReceiptHome> {
                         DataColumn(label: Text('Date')),
                         // DataColumn(label: Text('Customer ID')),
                         DataColumn(label: Text('Customer Name')),
-                        DataColumn(label: Text('Customer Mobile')),
+                        // DataColumn(label: Text('Customer Mobile')),
                         // DataColumn(label: Text('Customer Address')),
                         DataColumn(label: Text('Item Names')),
                         DataColumn(label: Text('IMEI Numbers')),
@@ -203,7 +203,7 @@ class _SalesReceiptHomeState extends State<SalesReceiptHome> {
                             DataCell(Text(_formatDate(data['created_at']))),
                             // DataCell(Text('${data['customer_id'] ?? ''}')),
                             DataCell(Text('${data['customer_name'] ?? ''}')),
-                            DataCell(Text('${data['customer_mobile'] ?? ''}')),
+                            // DataCell(Text('${data['customer_mobile'] ?? ''}')),
                             // DataCell(Text('${data['customer_address'] ?? ''}')),
                             DataCell(
                               _ellipsisCell(_formatItemNamesWithPrices(data)),

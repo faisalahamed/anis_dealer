@@ -153,6 +153,57 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
                 'updated_at': FieldValue.serverTimestamp(),
               });
 
+              final mobileId = '${data['forign_mobile_id'] ?? ''}';
+              if (mobileId.isNotEmpty) {
+                final receiptQuery = await _firestore
+                    .collection('sales_receipts')
+                    .where('item_ids', arrayContains: mobileId)
+                    .get();
+
+                for (final receiptDoc in receiptQuery.docs) {
+                  final receiptData = receiptDoc.data();
+                  final itemIdsRaw = receiptData['item_ids'];
+                  final pricesRaw = receiptData['item_selling_prices'];
+
+                  if (itemIdsRaw is! List || pricesRaw is! List) {
+                    continue;
+                  }
+
+                  final itemIds = itemIdsRaw.map((e) => '$e').toList();
+                  final prices = pricesRaw
+                      .map((e) => e is num ? e : num.tryParse('$e') ?? 0)
+                      .toList();
+
+                  final itemIndex = itemIds.indexOf(mobileId);
+                  if (itemIndex < 0) {
+                    continue;
+                  }
+
+                  if (itemIndex >= prices.length) {
+                    while (prices.length <= itemIndex) {
+                      prices.add(0);
+                    }
+                  }
+
+                  prices[itemIndex] = newPrice;
+                  final totalSelling = prices.fold<num>(
+                    0,
+                    (sum, val) => sum + (val is num ? val : 0),
+                  );
+                  final totalBuyingRaw = receiptData['total_buying_cost'];
+                  final totalBuying = totalBuyingRaw is num
+                      ? totalBuyingRaw
+                      : num.tryParse('$totalBuyingRaw') ?? 0;
+
+                  await receiptDoc.reference.update({
+                    'item_selling_prices': prices,
+                    'total_selling_cost': totalSelling,
+                    'total_profit': totalSelling - totalBuying,
+                    'updated_at': FieldValue.serverTimestamp(),
+                  });
+                }
+              }
+
               if (!mounted) return;
               Navigator.pop(context);
             },
