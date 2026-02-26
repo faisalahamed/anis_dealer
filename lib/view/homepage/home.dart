@@ -28,6 +28,17 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        leadingWidth: 44,
+        leading: Padding(
+          padding: const EdgeInsets.all(6),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/icons/app_icon.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
         title: Text(widget.title),
       ),
       body: SingleChildScrollView(
