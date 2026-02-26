@@ -4,6 +4,8 @@ import 'package:anis_dealer/view/mobile/add_mobile_home.dart';
 import 'package:anis_dealer/view/mobile/add_new_mobile_multi.dart';
 import 'package:anis_dealer/view/mobile/all_mobile_list.dart';
 import 'package:anis_dealer/view/model_view/model_view.dart';
+import 'package:anis_dealer/view/note_pad/note_pad_home.dart';
+import 'package:anis_dealer/view/return_mobile/return_mobile_home.dart';
 import 'package:anis_dealer/view/sell_mobile/sales_history_home.dart';
 import 'package:anis_dealer/view/sell_mobile/sales_receipt.dart';
 import 'package:anis_dealer/view/sell_mobile/sell_home.dart';
@@ -32,6 +34,10 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            Text(
+              'Today\'s Summary',
+              style: TextStyle(fontSize: 14, color: Colors.black54),
+            ),
             const _SummaryCard(),
             const SizedBox(height: 24),
             _SectionCard(
@@ -88,7 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Expanded(
                         child: _NavTile(
                           icon: Icons.playlist_add_check_circle,
-                          label: 'All Mobile List',
+                          label: 'All Mobile',
                           onTap: () {
                             Navigator.push(
                               context,
@@ -150,10 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              'আরও ফিচার আসছে শীঘ্রই...',
-              style: TextStyle(fontSize: 14, color: Colors.black54),
-            ),
+
             const SizedBox(height: 16),
             _SectionCard(
               child: Column(
@@ -169,7 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Expanded(
                         child: _NavTile(
                           icon: Icons.playlist_add_check_circle,
-                          label: 'Add new MODEL',
+                          label: 'Add MODEL',
                           onTap: () {
                             Navigator.push(
                               context,
@@ -184,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Expanded(
                         child: _NavTile(
                           icon: Icons.people_alt,
-                          label: 'Add new CUSTOMER',
+                          label: 'Add Customer',
                           onTap: () {
                             Navigator.push(
                               context,
@@ -216,6 +219,68 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: _NavTile(
                           icon: Icons.request_quote,
                           label: 'Return Mobile',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ReturnMobileHome(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            const SizedBox(height: 16),
+            _SectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _NavTile(
+                          icon: Icons.playlist_add_check_circle,
+                          label: 'Notepad',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const NotePadHome(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _NavTile(
+                          icon: Icons.people_alt,
+                          label: 'Expenses',
+                          onTap: () {},
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _NavTile(
+                          icon: Icons.receipt_long,
+                          label: 'Reports',
+                          onTap: () {},
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _NavTile(
+                          icon: Icons.request_quote,
+                          label: 'Feature 4',
                           onTap: () {},
                         ),
                       ),
@@ -245,8 +310,16 @@ class _SummaryCard extends StatelessWidget {
         num totalSoldCount = 0;
 
         if (snapshot.hasData) {
+          final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
           for (final doc in snapshot.data!.docs) {
             final data = doc.data() as Map<String, dynamic>;
+            final createdAt = data['created_at'];
+            if (createdAt is! Timestamp) continue;
+            final dt = createdAt.toDate().toLocal();
+            final day = DateTime(dt.year, dt.month, dt.day);
+            if (day != today) continue;
+
             final count = data['item_count'];
             if (count is num) {
               totalSoldCount += count;
@@ -328,11 +401,45 @@ class _SummaryCard extends StatelessWidget {
                         ),
                       ),
                       const _VerticalDivider(),
-                      const Expanded(
-                        child: _MetricCell(
-                          title: 'মোট প্রাপ্ত টাকা',
-                          value: '০ ৳',
-                          valueColor: Color(0xFF1E5BD7),
+                      Expanded(
+                        child: StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('cash_received')
+                              .snapshots(),
+                          builder: (context, cashSnap) {
+                            num totalCashToday = 0;
+                            if (cashSnap.hasData) {
+                              final now = DateTime.now();
+                              final today = DateTime(
+                                now.year,
+                                now.month,
+                                now.day,
+                              );
+                              for (final doc in cashSnap.data!.docs) {
+                                final data = doc.data() as Map<String, dynamic>;
+                                final createdAt = data['created_at'];
+                                if (createdAt is! Timestamp) continue;
+
+                                final dt = createdAt.toDate().toLocal();
+                                final day = DateTime(dt.year, dt.month, dt.day);
+                                if (day != today) continue;
+
+                                final amount = data['amount'];
+                                if (amount is num) {
+                                  totalCashToday += amount;
+                                } else {
+                                  totalCashToday +=
+                                      num.tryParse('$amount') ?? 0;
+                                }
+                              }
+                            }
+
+                            return _MetricCell(
+                              title: 'মোট প্রাপ্ত টাকা',
+                              value: '${totalCashToday.toStringAsFixed(0)} ৳',
+                              valueColor: const Color(0xFF1E5BD7),
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),

@@ -108,74 +108,77 @@ class _CustomerWiseBillState extends State<CustomerWiseBill> {
                       child: SingleChildScrollView(
                         controller: _hController,
                         scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          dataRowMinHeight: 48,
-                          dataRowMaxHeight: 64,
-                          columns: const [
-                            // DataColumn(label: Text('Customer ID')),
-                            DataColumn(label: Text('Customer Name')),
-                            DataColumn(label: Text('Customer Mobile')),
-                            DataColumn(label: Text('Last Bill Date')),
-                            DataColumn(label: Text('Total Buying')),
-                            DataColumn(label: Text('Total Estimated')),
-                            DataColumn(label: Text('Total Selling')),
-                            DataColumn(label: Text('Total Profit')),
-                            DataColumn(label: Text('Details')),
-                          ],
-                          rows: customers.map((doc) {
-                            final data = doc.data() as Map<String, dynamic>;
-                            final totalsRow = totals[doc.id] ?? {};
-                            return DataRow(
-                              cells: [
-                                // DataCell(Text(doc.id)),
-                                DataCell(Text('${data['name'] ?? ''}')),
-                                DataCell(Text('${data['mobile'] ?? ''}')),
-                                DataCell(
-                                  Text(_formatDate(totalsRow['last_date'])),
-                                ),
-                                DataCell(
-                                  Text(
-                                    '${totalsRow['total_buying_cost'] ?? 0}',
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: DataTable(
+                            dataRowMinHeight: 48,
+                            dataRowMaxHeight: 64,
+                            columns: const [
+                              // DataColumn(label: Text('Customer ID')),
+                              DataColumn(label: Text('Customer Name')),
+                              DataColumn(label: Text('Customer Mobile')),
+                              DataColumn(label: Text('Last Bill Date')),
+                              DataColumn(label: Text('Total Buying')),
+                              DataColumn(label: Text('Total Estimated')),
+                              DataColumn(label: Text('Total Selling')),
+                              DataColumn(label: Text('Total Profit')),
+                              DataColumn(label: Text('Details')),
+                            ],
+                            rows: customers.map((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              final totalsRow = totals[doc.id] ?? {};
+                              return DataRow(
+                                cells: [
+                                  // DataCell(Text(doc.id)),
+                                  DataCell(Text('${data['name'] ?? ''}')),
+                                  DataCell(Text('${data['mobile'] ?? ''}')),
+                                  DataCell(
+                                    Text(_formatDate(totalsRow['last_date'])),
                                   ),
-                                ),
-                                DataCell(
-                                  Text(
-                                    '${totalsRow['total_estimated_cost'] ?? 0}',
-                                  ),
-                                ),
-                                DataCell(
-                                  Text(
-                                    '${totalsRow['total_selling_cost'] ?? 0}',
-                                  ),
-                                ),
-                                DataCell(
-                                  Text('${totalsRow['total_profit'] ?? 0}'),
-                                ),
-                                DataCell(
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.visibility,
-                                      size: 18,
+                                  DataCell(
+                                    Text(
+                                      '${totalsRow['total_buying_cost'] ?? 0}',
                                     ),
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => CustomerBillDetails(
-                                            customerId: doc.id,
-                                            customerName: (data['name'] ?? '')
-                                                .toString(),
-                                            customerMobile:
-                                                (data['mobile'] ?? '')
-                                                    .toString(),
-                                          ),
-                                        ),
-                                      );
-                                    },
                                   ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
+                                  DataCell(
+                                    Text(
+                                      '${totalsRow['total_estimated_cost'] ?? 0}',
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      '${totalsRow['total_selling_cost'] ?? 0}',
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text('${totalsRow['total_profit'] ?? 0}'),
+                                  ),
+                                  DataCell(
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.visibility,
+                                        size: 18,
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => CustomerBillDetails(
+                                              customerId: doc.id,
+                                              customerName: (data['name'] ?? '')
+                                                  .toString(),
+                                              customerMobile:
+                                                  (data['mobile'] ?? '')
+                                                      .toString(),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
                         ),
                       ),
                     ),

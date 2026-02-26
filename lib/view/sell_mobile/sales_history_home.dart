@@ -20,7 +20,7 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
   DateTime? _toDate;
   String _searchQuery = '';
   int _currentPage = 0;
-  int _rowsPerPage = 20;
+  int _rowsPerPage = 10;
 
   String _formatDate(dynamic value) {
     if (value is Timestamp) {
@@ -409,6 +409,11 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              ElevatedButton.icon(
+                                onPressed: () => _printCurrentTable(docs),
+                                icon: const Icon(Icons.print),
+                                label: const Text('Print Table'),
+                              ),
                               DataTable(
                                 columns: const [
                                   DataColumn(label: Text('Selling Date')),
@@ -484,17 +489,12 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
                                   );
                                 }).toList(),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 12),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  ElevatedButton.icon(
-                                    onPressed: () => _printCurrentTable(docs),
-                                    icon: const Icon(Icons.print),
-                                    label: const Text('Print Table'),
-                                  ),
                                   const Text('Rows per page:'),
                                   DropdownButton<int>(
                                     value: _rowsPerPage,

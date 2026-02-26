@@ -302,6 +302,8 @@ class _SellHomeState extends State<SellHome> {
 
   @override
   Widget build(BuildContext context) {
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sell Mobile'),
@@ -491,65 +493,61 @@ class _SellHomeState extends State<SellHome> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Total Buying Price: $_totalBuyingPrice',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Total Estimated selling Price: $_totalEstimatedSellingPrice',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                'Total Inputed selling Price: $_totalInputSellingPrice',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                _totalProfitOrLoss >= 0
-                    ? 'Total Profit: ${_totalProfitOrLoss.toStringAsFixed(2)}'
-                    : 'Total Loss: ${_totalProfitOrLoss.abs().toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: _totalProfitOrLoss >= 0 ? Colors.green : Colors.red,
+            if (!isKeyboardOpen) ...[
+              const SizedBox(height: 12),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Total Buying Price: $_totalBuyingPrice',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _scanAndAddMobile,
-                  icon: const Icon(Icons.qr_code_scanner),
-                  label: const Text('Scan IEMI'),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Total Estimated selling Price: $_totalEstimatedSellingPrice',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: _openImeiInputDialog,
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Enter IEMI'),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Total Inputed selling Price: $_totalInputSellingPrice',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                // const SizedBox(width: 12),
-                // ElevatedButton(
-                //   onPressed: _confirmSell,
-                //   child: const Text('Confirm Sell'),
-                // ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  _totalProfitOrLoss >= 0
+                      ? 'Total Profit: ${_totalProfitOrLoss.toStringAsFixed(2)}'
+                      : 'Total Loss: ${_totalProfitOrLoss.abs().toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _totalProfitOrLoss >= 0 ? Colors.green : Colors.red,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _scanAndAddMobile,
+                    icon: const Icon(Icons.qr_code_scanner),
+                    label: const Text('Scan IEMI'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    onPressed: _openImeiInputDialog,
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Enter IEMI'),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
