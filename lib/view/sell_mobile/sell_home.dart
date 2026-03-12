@@ -15,6 +15,7 @@ class _SellHomeState extends State<SellHome> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final ScrollController _hController = ScrollController();
   final ScrollController _vController = ScrollController();
+  bool _addingFromScan = false;
 
   String? selectedCustomerId;
   final customerNameController = TextEditingController();
@@ -42,18 +43,46 @@ class _SellHomeState extends State<SellHome> {
     return '';
   }
 
+  String? _extractImeiFromScan(String raw) {
+    final text = raw.trim();
+    if (text.isEmpty) return null;
+    final direct = int.tryParse(text);
+    if (direct != null) return text;
+
+    // Many scanners return text like "IMEI: 123..." or include newlines.
+    final matches = RegExp(r'\d+').allMatches(text).map((m) => m.group(0)!).toList();
+    if (matches.isEmpty) return null;
+    matches.sort((a, b) => b.length.compareTo(a.length));
+    final candidate = matches.first;
+    if (candidate.length < 10) return null;
+    return candidate;
+  }
+
   Future<void> _scanAndAddMobile() async {
+    if (_addingFromScan) return;
+    _addingFromScan = true;
     final code = await Navigator.of(
       context,
     ).push<String?>(MaterialPageRoute(builder: (_) => const _ScanPage()));
 
+    _addingFromScan = false;
     if (code == null || code.trim().isEmpty) return;
-    await _addImei(code.trim());
+    final imeiRaw = _extractImeiFromScan(code);
+    if (imeiRaw == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not read IMEI from scan')));
+      return;
+    }
+    await _addImei(imeiRaw);
   }
 
   Future<void> _addImei(String raw) async {
-    final imei = int.tryParse(raw);
+    final cleaned = raw.trim();
+    final imei = int.tryParse(cleaned);
     if (imei == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Invalid IMEI')));
@@ -61,19 +90,29 @@ class _SellHomeState extends State<SellHome> {
     }
 
     if (selectedMobiles.any((m) => m.iemi == imei)) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('IMEI already added: $imei')));
       return;
     }
 
-    final query = await _firestore
+    // Support both int and string storage in Firestore.
+    var query = await _firestore
         .collection('mobiles')
         .where('iemi', isEqualTo: imei)
         .limit(1)
         .get();
+    if (query.docs.isEmpty) {
+      query = await _firestore
+          .collection('mobiles')
+          .where('iemi', isEqualTo: cleaned)
+          .limit(1)
+          .get();
+    }
 
     if (query.docs.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('IMEI not found: $imei')));
@@ -84,12 +123,22 @@ class _SellHomeState extends State<SellHome> {
     final data = doc.data();
     final isSold = (data['isSold'] ?? false) == true;
     if (isSold) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('IMEI already sold: $imei')));
       return;
     }
 
+    if (selectedMobiles.any((m) => m.docId == doc.id)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('IMEI already added: $imei')),
+      );
+      return;
+    }
+
+    if (!mounted) return;
     setState(() {
       selectedMobiles.add(_SelectedMobile(doc.id, data));
       _sellingPriceControllers[doc.id] = TextEditingController(
@@ -579,8 +628,15 @@ class _SelectedMobile {
       : int.tryParse('${data['iemi']}') ?? 0;
 }
 
-class _ScanPage extends StatelessWidget {
+class _ScanPage extends StatefulWidget {
   const _ScanPage();
+
+  @override
+  State<_ScanPage> createState() => _ScanPageState();
+}
+
+class _ScanPageState extends State<_ScanPage> {
+  bool _didPop = false;
 
   @override
   Widget build(BuildContext context) {
@@ -588,10 +644,14 @@ class _ScanPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Scan IEMI')),
       body: MobileScanner(
         onDetect: (capture) {
+          if (_didPop) return;
           final barcodes = capture.barcodes;
           if (barcodes.isNotEmpty) {
             final code = barcodes.first.rawValue ?? '';
-            if (code.isNotEmpty) Navigator.of(context).pop(code);
+            if (code.isNotEmpty) {
+              _didPop = true;
+              Navigator.of(context).pop(code);
+            }
           }
         },
       ),
