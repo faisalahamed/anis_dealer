@@ -14,6 +14,7 @@ import 'package:anis_dealer/view/sell_mobile/sell_home.dart';
 import 'package:anis_dealer/view/stock/stock_home.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -55,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Expanded(
                     child: _NavTile(
-                      icon: Icons.inventory_2,
+                      icon: Icons.add_shopping_cart,
                       label: 'কেনা',
                       onTap: () {
                         // Navigator.push(
@@ -76,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _NavTile(
-                      icon: Icons.shopping_bag,
+                      icon: Icons.sell,
                       label: 'বেচা',
                       onTap: () {
                         Navigator.push(
@@ -103,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.playlist_add_check_circle,
+                          icon: Icons.list_alt,
                           label: 'All Mobile',
                           onTap: () {
                             Navigator.push(
@@ -118,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.receipt_long,
+                          icon: Icons.history,
                           label: 'বেচার খাতা',
                           onTap: () {
                             Navigator.push(
@@ -133,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.people_alt,
+                          icon: Icons.group,
                           label: 'বাকির খাতা',
                           onTap: () {
                             Navigator.push(
@@ -148,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.request_quote,
+                          icon: Icons.receipt,
                           label: 'রশিদ লগ',
                           onTap: () {
                             Navigator.push(
@@ -181,7 +182,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.playlist_add_check_circle,
+                          icon: Icons.note_alt,
                           label: 'Notepad',
                           onTap: () {
                             Navigator.push(
@@ -196,7 +197,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.people_alt,
+                          icon: Icons.upcoming,
                           label: 'Feature Upcoming',
                           onTap: () {},
                         ),
@@ -204,7 +205,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.receipt_long,
+                          icon: Icons.inventory,
                           label: 'স্টক',
                           onTap: () {
                             Navigator.push(
@@ -220,7 +221,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.playlist_add_check_circle,
+                          icon: Icons.qr_code_2,
                           label: 'Acive IEMI',
                           onTap: () {
                             Navigator.push(
@@ -253,7 +254,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     children: [
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.playlist_add_check_circle,
+                          icon: Icons.add_box,
                           label: 'Add MODEL',
                           onTap: () {
                             Navigator.push(
@@ -268,7 +269,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.people_alt,
+                          icon: Icons.person_add_alt_1,
                           label: 'Add Customer',
                           onTap: () {
                             Navigator.push(
@@ -284,7 +285,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.playlist_add_check_circle,
+                          icon: Icons.verified,
                           label: 'Customer Code',
                           onTap: () {
                             Navigator.push(
@@ -301,7 +302,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.request_quote,
+                          icon: Icons.assignment_return,
                           label: 'Return Mobile',
                           onTap: () {
                             Navigator.push(
@@ -325,8 +326,16 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class _SummaryCard extends StatelessWidget {
+class _SummaryCard extends StatefulWidget {
   const _SummaryCard();
+
+  @override
+  State<_SummaryCard> createState() => _SummaryCardState();
+}
+
+class _SummaryCardState extends State<_SummaryCard> {
+  bool _showStockValue = true;
+  final NumberFormat _moneyFormat = NumberFormat.decimalPattern('en_IN');
 
   @override
   Widget build(BuildContext context) {
@@ -488,10 +497,53 @@ class _SummaryCard extends StatelessWidget {
                       ),
                       const _VerticalDivider(),
                       Expanded(
-                        child: _MetricCell(
-                          title: 'স্টক মূল্য',
-                          value: '${stockValueLocal.toStringAsFixed(0)} ৳',
-                          valueColor: const Color(0xFFE53935),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'স্টক মূল্য',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  visualDensity: VisualDensity.compact,
+                                  tooltip: _showStockValue ? 'Hide' : 'Show',
+                                  icon: Icon(
+                                    _showStockValue
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    size: 16,
+                                    color: const Color(0xFFE53935),
+                                  ),
+                                  onPressed: () {
+                                    setState(
+                                      () => _showStockValue = !_showStockValue,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _showStockValue
+                                  ? '${_moneyFormat.format(stockValueLocal)} ৳'
+                                  : '••••',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                color: Color(0xFFE53935),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const _VerticalDivider(),
@@ -613,6 +665,7 @@ class _NavTile extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               label,
+              textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ],

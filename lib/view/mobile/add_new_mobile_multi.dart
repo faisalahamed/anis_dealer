@@ -22,6 +22,7 @@ class _AddNewMobileMultiPageState extends State<AddNewMobileMultiPage> {
   final descriptionController = TextEditingController();
 
   String? selectedModelId;
+  String _selectedModelLabel = '';
   bool isSold = false;
   bool isSaving = false;
 
@@ -219,33 +220,151 @@ class _AddNewMobileMultiPageState extends State<AddNewMobileMultiPage> {
 
                 final docs = snapshot.data?.docs ?? [];
 
-                return DropdownButtonFormField<String>(
+                return FormField<String>(
                   initialValue: selectedModelId,
-                  decoration: const InputDecoration(labelText: 'Model ID'),
-                  items: docs.map((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    final modelName = (data['name'] ?? '').toString();
-                    final modelColor = (data['color'] ?? '').toString();
-                    return DropdownMenuItem(
-                      value: doc.id,
-                      child: Text('$modelName -$modelColor'),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedModelId = value;
-                      final selected = docs.firstWhere(
-                        (doc) => doc.id == value,
-                      );
-                      final data = selected.data() as Map<String, dynamic>;
-                      nameController.text = (data['name'] ?? '').toString();
-                      colorController.text = (data['color'] ?? '').toString();
-                      descriptionController.text = (data['description'] ?? '')
-                          .toString();
-                    });
-                  },
                   validator: (value) =>
                       (value == null || value.isEmpty) ? 'Required' : null,
+                  builder: (state) {
+                    return InkWell(
+                      onTap: () async {
+                        final searchController = TextEditingController();
+                        String query = '';
+
+                        final selected = await showModalBottomSheet<String>(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) {
+                            final viewInsets = MediaQuery.of(
+                              context,
+                            ).viewInsets.bottom;
+                            return Padding(
+                              // padding: EdgeInsets.only(bottom: viewInsets),
+                              padding: EdgeInsets.all(36),
+                              child: StatefulBuilder(
+                                builder: (context, setSheetState) {
+                                  final filteredDocs = query.isEmpty
+                                      ? docs
+                                      : docs.where((doc) {
+                                          final data =
+                                              doc.data()
+                                                  as Map<String, dynamic>;
+                                          final name = (data['name'] ?? '')
+                                              .toString()
+                                              .toLowerCase();
+                                          final color = (data['color'] ?? '')
+                                              .toString()
+                                              .toLowerCase();
+                                          return name.contains(query) ||
+                                              color.contains(query);
+                                        }).toList();
+
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: TextField(
+                                          controller: searchController,
+                                          onChanged: (value) {
+                                            setSheetState(() {
+                                              query = value
+                                                  .trim()
+                                                  .toLowerCase();
+                                            });
+                                          },
+                                          decoration: InputDecoration(
+                                            hintText: 'Search model...',
+                                            prefixIcon: const Icon(
+                                              Icons.search,
+                                            ),
+                                            suffixIcon: query.isEmpty
+                                                ? null
+                                                : IconButton(
+                                                    icon: const Icon(
+                                                      Icons.clear,
+                                                    ),
+                                                    onPressed: () {
+                                                      searchController.clear();
+                                                      setSheetState(() {
+                                                        query = '';
+                                                      });
+                                                    },
+                                                  ),
+                                            border: const OutlineInputBorder(),
+                                            isDense: true,
+                                          ),
+                                        ),
+                                      ),
+                                      Flexible(
+                                        child: ListView.separated(
+                                          padding: const EdgeInsets.only(
+                                            top: 8,
+                                          ),
+                                          shrinkWrap: true,
+                                          itemCount: filteredDocs.length,
+                                          separatorBuilder: (_, __) =>
+                                              const Divider(height: 1),
+                                          itemBuilder: (context, index) {
+                                            final doc = filteredDocs[index];
+                                            final data =
+                                                doc.data()
+                                                    as Map<String, dynamic>;
+                                            final modelName =
+                                                (data['name'] ?? '').toString();
+                                            final modelColor =
+                                                (data['color'] ?? '')
+                                                    .toString();
+                                            return ListTile(
+                                              title: Text(
+                                                '$modelName -$modelColor',
+                                              ),
+                                              onTap: () => Navigator.of(
+                                                context,
+                                              ).pop(doc.id),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                    ],
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        );
+
+                        if (selected == null) return;
+                        setState(() {
+                          selectedModelId = selected;
+                          final selectedDoc = docs.firstWhere(
+                            (doc) => doc.id == selected,
+                          );
+                          final data =
+                              selectedDoc.data() as Map<String, dynamic>;
+                          nameController.text = (data['name'] ?? '').toString();
+                          colorController.text = (data['color'] ?? '')
+                              .toString();
+                          descriptionController.text =
+                              (data['description'] ?? '').toString();
+                          _selectedModelLabel =
+                              '${data['name'] ?? ''}-${data['color'] ?? ''}';
+                        });
+                        state.didChange(selected);
+                      },
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'Model ID',
+                          errorText: state.errorText,
+                        ),
+                        child: Text(
+                          _selectedModelLabel.isEmpty
+                              ? 'Select Model'
+                              : _selectedModelLabel,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
