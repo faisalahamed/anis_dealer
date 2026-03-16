@@ -51,7 +51,9 @@ class _SellHomeState extends State<SellHome> {
     if (direct != null) return text;
 
     // Many scanners return text like "IMEI: 123..." or include newlines.
-    final matches = RegExp(r'\d+').allMatches(text).map((m) => m.group(0)!).toList();
+    final matches = RegExp(
+      r'\d+',
+    ).allMatches(text).map((m) => m.group(0)!).toList();
     if (matches.isEmpty) return null;
     matches.sort((a, b) => b.length.compareTo(a.length));
     final candidate = matches.first;
@@ -71,9 +73,9 @@ class _SellHomeState extends State<SellHome> {
     final imeiRaw = _extractImeiFromScan(code);
     if (imeiRaw == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Could not read IMEI from scan')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not read IMEI from scan')),
+      );
       return;
     }
     await _addImei(imeiRaw);
@@ -133,9 +135,9 @@ class _SellHomeState extends State<SellHome> {
 
     if (selectedMobiles.any((m) => m.docId == doc.id)) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('IMEI already added: $imei')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('IMEI already added: $imei')));
       return;
     }
 
@@ -215,9 +217,7 @@ class _SellHomeState extends State<SellHome> {
   Future<void> _confirmSell() async {
     if (selectedCustomerId == null || selectedMobiles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Select customer and add mobiles'),
-        ),
+        const SnackBar(content: Text('Select customer and add mobiles')),
       );
       return;
     }
@@ -308,6 +308,16 @@ class _SellHomeState extends State<SellHome> {
         'f_customer_mobile': customerMobileController.text,
         'f_customer_address': customerAddressController.text,
         'f_customer_code_name': selectedCustomerCodeName,
+      });
+
+      final activeRef = _firestore.collection('active_iemi').doc();
+      batch.set(activeRef, {
+        'id': activeRef.id,
+        'iemi': data['iemi'],
+        'customer_name': customerNameController.text,
+        'customer_code': selectedCustomerCodeName,
+        'date': FieldValue.serverTimestamp(),
+        'is_activated': false,
       });
 
       batch.update(docRef, {
@@ -439,17 +449,11 @@ class _SellHomeState extends State<SellHome> {
 
                 final docs = snapshot.data?.docs ?? [];
                 final items = <DropdownMenuItem<String>>[
-                  const DropdownMenuItem(
-                    value: 'None',
-                    child: Text('None'),
-                  ),
+                  const DropdownMenuItem(value: 'None', child: Text('None')),
                   ...docs.map((doc) {
                     final data = doc.data() as Map<String, dynamic>;
                     final name = (data['code_name'] ?? '').toString();
-                    return DropdownMenuItem(
-                      value: name,
-                      child: Text(name),
-                    );
+                    return DropdownMenuItem(value: name, child: Text(name));
                   }),
                 ];
 

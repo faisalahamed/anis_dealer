@@ -1,3 +1,4 @@
+import 'package:anis_dealer/view/active_imei/acitve_iemi.dart';
 import 'package:anis_dealer/view/bill_management/customer_wise_bill.dart';
 import 'package:anis_dealer/view/customer_code/customer_code_home.dart';
 import 'package:anis_dealer/view/customer_view/customer_home.dart';
@@ -34,10 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: const EdgeInsets.all(6),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              'assets/icons/app_icon.png',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('assets/icons/app_icon.png', fit: BoxFit.cover),
           ),
         ),
         title: Text(widget.title),
@@ -282,14 +280,20 @@ class _MyHomePageState extends State<MyHomePage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
-                          icon: Icons.receipt_long,
-                          label: 'Reports',
-                          onTap: () {},
+                          icon: Icons.playlist_add_check_circle,
+                          label: 'Acive IEMI',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ActiveImeiHome(),
+                              ),
+                            );
+                          },
                         ),
                       ),
-
                       const SizedBox(width: 12),
-                       Expanded(
+                      Expanded(
                         child: _NavTile(
                           icon: Icons.playlist_add_check_circle,
                           label: 'Customer Code',
