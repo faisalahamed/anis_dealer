@@ -155,6 +155,7 @@ class _SalesReceiptHomeState extends State<SalesReceiptHome> {
               pw.Text('Name: ${data['customer_name'] ?? ''}'),
               pw.Text('Mobile: ${data['customer_mobile'] ?? ''}'),
               pw.Text('Address: ${data['customer_address'] ?? ''}'),
+              pw.Text('Code: ${data['customer_code_name'] ?? ''}'),
               pw.SizedBox(height: 12),
               pw.Text(
                 'Items',
@@ -189,6 +190,7 @@ class _SalesReceiptHomeState extends State<SalesReceiptHome> {
       return <String>[
         _formatDate(data['created_at']),
         '${data['customer_name'] ?? ''}',
+        '${data['customer_code_name'] ?? ''}',
         _formatItemNamesWithPrices(data),
         _formatImeis(data['imeis']),
         '${data['item_count'] ?? ''}',
@@ -216,6 +218,7 @@ class _SalesReceiptHomeState extends State<SalesReceiptHome> {
             headers: const [
               'Date',
               'Customer',
+              'Customer Code',
               'Item Names',
               'IMEIs',
               'Count',

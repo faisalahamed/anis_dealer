@@ -18,6 +18,7 @@ class _SellHomeState extends State<SellHome> {
   bool _addingFromScan = false;
 
   String? selectedCustomerId;
+  String selectedCustomerCodeName = 'None';
   final customerNameController = TextEditingController();
   final customerMobileController = TextEditingController();
   final customerAddressController = TextEditingController();
@@ -214,7 +215,9 @@ class _SellHomeState extends State<SellHome> {
   Future<void> _confirmSell() async {
     if (selectedCustomerId == null || selectedMobiles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select customer and add mobiles')),
+        const SnackBar(
+          content: Text('Select customer and add mobiles'),
+        ),
       );
       return;
     }
@@ -304,6 +307,7 @@ class _SellHomeState extends State<SellHome> {
         'f_customer_name': customerNameController.text,
         'f_customer_mobile': customerMobileController.text,
         'f_customer_address': customerAddressController.text,
+        'f_customer_code_name': selectedCustomerCodeName,
       });
 
       batch.update(docRef, {
@@ -322,6 +326,7 @@ class _SellHomeState extends State<SellHome> {
       'customer_name': customerNameController.text,
       'customer_mobile': customerMobileController.text,
       'customer_address': customerAddressController.text,
+      'customer_code_name': selectedCustomerCodeName,
       'item_names': itemNames.join(', '),
       'item_names_list': itemNames,
       'item_ids': itemIds,
@@ -415,6 +420,54 @@ class _SellHomeState extends State<SellHome> {
                   },
                   decoration: const InputDecoration(
                     labelText: 'Select Customer',
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Select Customer Code',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            StreamBuilder<QuerySnapshot>(
+              stream: _firestore.collection('customer_coode').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const LinearProgressIndicator();
+                }
+
+                final docs = snapshot.data?.docs ?? [];
+                final items = <DropdownMenuItem<String>>[
+                  const DropdownMenuItem(
+                    value: 'None',
+                    child: Text('None'),
+                  ),
+                  ...docs.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    final name = (data['code_name'] ?? '').toString();
+                    return DropdownMenuItem(
+                      value: name,
+                      child: Text(name),
+                    );
+                  }),
+                ];
+
+                final values = items.map((e) => e.value).toSet();
+                if (!values.contains(selectedCustomerCodeName)) {
+                  selectedCustomerCodeName = 'None';
+                }
+
+                return DropdownButtonFormField<String>(
+                  value: selectedCustomerCodeName,
+                  items: items,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCustomerCodeName = value ?? 'None';
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Select Customer Code',
                   ),
                 );
               },

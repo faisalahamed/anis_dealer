@@ -41,10 +41,12 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
     final imei = '${data['f_iemi'] ?? ''}'.toLowerCase();
     final mobileName = '${data['f_mobile_name'] ?? ''}'.toLowerCase();
     final customerName = '${data['f_customer_name'] ?? ''}'.toLowerCase();
+    final customerCode = '${data['f_customer_code_name'] ?? ''}'.toLowerCase();
 
     return imei.contains(query) ||
         mobileName.contains(query) ||
-        customerName.contains(query);
+        customerName.contains(query) ||
+        customerCode.contains(query);
   }
 
   Query<Map<String, dynamic>> _salesQuery() {
@@ -230,6 +232,7 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
       // 'Profit',
       'Customer Name',
       'Customer Mobile',
+      'Customer Code',
     ];
 
     final rows = filteredDocs.map((doc) {
@@ -245,6 +248,7 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
         // '${data['profit'] ?? ''}',
         '${data['f_customer_name'] ?? ''}',
         '${data['f_customer_mobile'] ?? ''}',
+        '${data['f_customer_code_name'] ?? ''}',
       ];
     }).toList();
 
@@ -427,7 +431,8 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
                                   DataColumn(label: Text('Profit')),
                                   // DataColumn(label: Text('Customer ID')),
                                   DataColumn(label: Text('Customer Name')),
-                                  DataColumn(label: Text('Customer Mobile')),
+                                  // DataColumn(label: Text('Customer Mobile')),
+                                  DataColumn(label: Text('Customer Code')),
                                   DataColumn(label: Text('Edit')),
                                 ],
                                 rows: pageDocs.map((doc) {
@@ -467,9 +472,14 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
                                           '${data['f_customer_name'] ?? ''}',
                                         ),
                                       ),
+                                      // DataCell(
+                                      //   Text(
+                                      //     '${data['f_customer_mobile'] ?? ''}',
+                                      //   ),
+                                      // ),
                                       DataCell(
                                         Text(
-                                          '${data['f_customer_mobile'] ?? ''}',
+                                          '${data['f_customer_code_name'] ?? ''}',
                                         ),
                                       ),
                                       DataCell(

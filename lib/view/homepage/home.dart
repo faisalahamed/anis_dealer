@@ -1,4 +1,5 @@
 import 'package:anis_dealer/view/bill_management/customer_wise_bill.dart';
+import 'package:anis_dealer/view/customer_code/customer_code_home.dart';
 import 'package:anis_dealer/view/customer_view/customer_home.dart';
 import 'package:anis_dealer/view/mobile/add_mobile_home.dart';
 import 'package:anis_dealer/view/mobile/add_new_mobile_multi.dart';
@@ -288,13 +289,21 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
 
                       const SizedBox(width: 12),
-                      Expanded(
+                       Expanded(
                         child: _NavTile(
-                          icon: Icons.request_quote,
-                          label: 'Feature 4',
-                          onTap: () {},
+                          icon: Icons.playlist_add_check_circle,
+                          label: 'Customer Code',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CustomerCodeHome(),
+                              ),
+                            );
+                          },
                         ),
                       ),
+                      const SizedBox(width: 12),
                     ],
                   ),
                 ],
