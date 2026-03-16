@@ -123,6 +123,17 @@ class _ReturnMobileHomeState extends State<ReturnMobileHome> {
         .where('item_ids', arrayContains: doc.id)
         .get();
 
+    final activeQuery = await _firestore
+        .collection('active_iemi')
+        .where('iemi', isEqualTo: imei)
+        .get();
+    final activeFallbackQuery = activeQuery.docs.isEmpty
+        ? await _firestore
+            .collection('active_iemi')
+            .where('iemi', isEqualTo: rawImei)
+            .get()
+        : null;
+
     num removedBuying = 0;
     num removedEstimated = 0;
     num removedSelling = 0;
@@ -145,6 +156,15 @@ class _ReturnMobileHomeState extends State<ReturnMobileHome> {
 
     for (final saleDoc in salesQuery.docs) {
       batch.delete(saleDoc.reference);
+    }
+
+    for (final activeDoc in activeQuery.docs) {
+      batch.delete(activeDoc.reference);
+    }
+    if (activeFallbackQuery != null) {
+      for (final activeDoc in activeFallbackQuery.docs) {
+        batch.delete(activeDoc.reference);
+      }
     }
 
     for (final receiptDoc in receiptQuery.docs) {
