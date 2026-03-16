@@ -165,7 +165,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
 
             const SizedBox(height: 16),
             _SectionCard(
@@ -174,6 +173,79 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   const Text(
                     'Feature সমূহ',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 12),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _NavTile(
+                          icon: Icons.playlist_add_check_circle,
+                          label: 'Notepad',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const NotePadHome(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _NavTile(
+                          icon: Icons.people_alt,
+                          label: 'Feature Upcoming',
+                          onTap: () {},
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _NavTile(
+                          icon: Icons.receipt_long,
+                          label: 'স্টক',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => StockHome(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _NavTile(
+                          icon: Icons.playlist_add_check_circle,
+                          label: 'Acive IEMI',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ActiveImeiHome(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            _SectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Add New Entry',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 12),
@@ -208,90 +280,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           },
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _NavTile(
-                          icon: Icons.receipt_long,
-                          label: 'স্টক',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => StockHome(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
 
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _NavTile(
-                          icon: Icons.request_quote,
-                          label: 'Return Mobile',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ReturnMobileHome(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            const SizedBox(height: 16),
-            _SectionCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _NavTile(
-                          icon: Icons.playlist_add_check_circle,
-                          label: 'Notepad',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const NotePadHome(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _NavTile(
-                          icon: Icons.people_alt,
-                          label: 'Expenses',
-                          onTap: () {},
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _NavTile(
-                          icon: Icons.playlist_add_check_circle,
-                          label: 'Acive IEMI',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ActiveImeiHome(),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _NavTile(
@@ -308,6 +297,22 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                       const SizedBox(width: 12),
+
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _NavTile(
+                          icon: Icons.request_quote,
+                          label: 'Return Mobile',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ReturnMobileHome(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ],
