@@ -118,100 +118,229 @@ class _SalesHistoryHomeState extends State<SalesHistoryHome> {
     final controller = TextEditingController(
       text: '${data['selling_price'] ?? ''}',
     );
+    String? selectedCustomerId = data['f_customer_id']?.toString();
+    String selectedCustomerName = (data['f_customer_name'] ?? '').toString();
+    String selectedCustomerMobile = (data['f_customer_mobile'] ?? '').toString();
+    String selectedCustomerAddress =
+        (data['f_customer_address'] ?? '').toString();
+    String selectedCustomerCodeName =
+        (data['f_customer_code_name'] ?? 'None').toString();
 
     await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Selling Price'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'Selling Price'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newPrice = num.tryParse(controller.text.trim());
-              if (newPrice == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Enter valid price')),
-                );
-                return;
-              }
-
-              final buyingPrice = data['f_buying_price'];
-              final buy = buyingPrice is num
-                  ? buyingPrice
-                  : num.tryParse('$buyingPrice') ?? 0;
-              final profit = newPrice - buy;
-
-              await _firestore.collection('sales').doc(docId).update({
-                'selling_price': newPrice,
-                'profit': profit,
-                'updated_at': FieldValue.serverTimestamp(),
-              });
-
-              final mobileId = '${data['forign_mobile_id'] ?? ''}';
-              if (mobileId.isNotEmpty) {
-                final receiptQuery = await _firestore
-                    .collection('sales_receipts')
-                    .where('item_ids', arrayContains: mobileId)
-                    .get();
-
-                for (final receiptDoc in receiptQuery.docs) {
-                  final receiptData = receiptDoc.data();
-                  final itemIdsRaw = receiptData['item_ids'];
-                  final pricesRaw = receiptData['item_selling_prices'];
-
-                  if (itemIdsRaw is! List || pricesRaw is! List) {
-                    continue;
-                  }
-
-                  final itemIds = itemIdsRaw.map((e) => '$e').toList();
-                  final prices = pricesRaw
-                      .map((e) => e is num ? e : num.tryParse('$e') ?? 0)
-                      .toList();
-
-                  final itemIndex = itemIds.indexOf(mobileId);
-                  if (itemIndex < 0) {
-                    continue;
-                  }
-
-                  if (itemIndex >= prices.length) {
-                    while (prices.length <= itemIndex) {
-                      prices.add(0);
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          title: const Text('Edit Selling Price'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Selling Price'),
+                ),
+                const SizedBox(height: 12),
+                StreamBuilder<QuerySnapshot>(
+                  stream: _firestore.collection('customers').snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const LinearProgressIndicator();
                     }
-                  }
-
-                  prices[itemIndex] = newPrice;
-                  final totalSelling = prices.fold<num>(
-                    0,
-                    (sum, val) => sum + (val is num ? val : 0),
-                  );
-                  final totalBuyingRaw = receiptData['total_buying_cost'];
-                  final totalBuying = totalBuyingRaw is num
-                      ? totalBuyingRaw
-                      : num.tryParse('$totalBuyingRaw') ?? 0;
-
-                  await receiptDoc.reference.update({
-                    'item_selling_prices': prices,
-                    'total_selling_cost': totalSelling,
-                    'total_profit': totalSelling - totalBuying,
-                    'updated_at': FieldValue.serverTimestamp(),
-                  });
-                }
-              }
-
-              if (!mounted) return;
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
+                    final docs = snapshot.data?.docs ?? [];
+                    return DropdownButtonFormField<String>(
+                      value: selectedCustomerId,
+                      decoration:
+                          const InputDecoration(labelText: 'Customer Name'),
+                      items: docs.map((doc) {
+                        final d = doc.data() as Map<String, dynamic>;
+                        final name = (d['name'] ?? '').toString();
+                        return DropdownMenuItem(
+                          value: doc.id,
+                          child: Text(name),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        final selected = docs.firstWhere(
+                          (doc) => doc.id == value,
+                        );
+                        final d = selected.data() as Map<String, dynamic>;
+                        setStateDialog(() {
+                          selectedCustomerId = value;
+                          selectedCustomerName = (d['name'] ?? '').toString();
+                          selectedCustomerMobile =
+                              (d['mobile'] ?? '').toString();
+                          selectedCustomerAddress =
+                              (d['address'] ?? '').toString();
+                        });
+                      },
+                      validator: (value) =>
+                          (value == null || value.isEmpty) ? 'Required' : null,
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                StreamBuilder<QuerySnapshot>(
+                  stream: _firestore.collection('customer_coode').snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const LinearProgressIndicator();
+                    }
+                    final docs = snapshot.data?.docs ?? [];
+                    final items = <DropdownMenuItem<String>>[
+                      const DropdownMenuItem(
+                        value: 'None',
+                        child: Text('None'),
+                      ),
+                      ...docs.map((doc) {
+                        final d = doc.data() as Map<String, dynamic>;
+                        final name = (d['code_name'] ?? '').toString();
+                        return DropdownMenuItem(
+                          value: name,
+                          child: Text(name),
+                        );
+                      }),
+                    ];
+                    if (!items.any(
+                      (item) => item.value == selectedCustomerCodeName,
+                    )) {
+                      selectedCustomerCodeName = 'None';
+                    }
+                    return DropdownButtonFormField<String>(
+                      value: selectedCustomerCodeName,
+                      decoration:
+                          const InputDecoration(labelText: 'Customer Code'),
+                      items: items,
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          selectedCustomerCodeName = value ?? 'None';
+                        });
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newPrice = num.tryParse(controller.text.trim());
+                if (newPrice == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Enter valid price')),
+                  );
+                  return;
+                }
+                if (selectedCustomerId == null ||
+                    selectedCustomerId!.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Select customer')),
+                  );
+                  return;
+                }
+
+                final buyingPrice = data['f_buying_price'];
+                final buy = buyingPrice is num
+                    ? buyingPrice
+                    : num.tryParse('$buyingPrice') ?? 0;
+                final profit = newPrice - buy;
+
+                await _firestore.collection('sales').doc(docId).update({
+                  'selling_price': newPrice,
+                  'profit': profit,
+                  'f_customer_id': selectedCustomerId,
+                  'f_customer_name': selectedCustomerName,
+                  'f_customer_mobile': selectedCustomerMobile,
+                  'f_customer_address': selectedCustomerAddress,
+                  'f_customer_code_name': selectedCustomerCodeName,
+                  'updated_at': FieldValue.serverTimestamp(),
+                });
+
+                final mobileId = '${data['forign_mobile_id'] ?? ''}';
+                if (mobileId.isNotEmpty) {
+                  final receiptQuery = await _firestore
+                      .collection('sales_receipts')
+                      .where('item_ids', arrayContains: mobileId)
+                      .get();
+
+                  for (final receiptDoc in receiptQuery.docs) {
+                    final receiptData = receiptDoc.data();
+                    final itemIdsRaw = receiptData['item_ids'];
+                    final pricesRaw = receiptData['item_selling_prices'];
+
+                    if (itemIdsRaw is! List || pricesRaw is! List) {
+                      continue;
+                    }
+
+                    final itemIds = itemIdsRaw.map((e) => '$e').toList();
+                    final prices = pricesRaw
+                        .map((e) => e is num ? e : num.tryParse('$e') ?? 0)
+                        .toList();
+
+                    final itemIndex = itemIds.indexOf(mobileId);
+                    if (itemIndex < 0) {
+                      continue;
+                    }
+
+                    if (itemIndex >= prices.length) {
+                      while (prices.length <= itemIndex) {
+                        prices.add(0);
+                      }
+                    }
+
+                    prices[itemIndex] = newPrice;
+                    final totalSelling = prices.fold<num>(
+                      0,
+                      (sum, val) => sum + (val is num ? val : 0),
+                    );
+                    final totalBuyingRaw = receiptData['total_buying_cost'];
+                    final totalBuying = totalBuyingRaw is num
+                        ? totalBuyingRaw
+                        : num.tryParse('$totalBuyingRaw') ?? 0;
+
+                    await receiptDoc.reference.update({
+                      'item_selling_prices': prices,
+                      'total_selling_cost': totalSelling,
+                      'total_profit': totalSelling - totalBuying,
+                      'customer_id': selectedCustomerId,
+                      'customer_name': selectedCustomerName,
+                      'customer_mobile': selectedCustomerMobile,
+                      'customer_address': selectedCustomerAddress,
+                      'customer_code_name': selectedCustomerCodeName,
+                      'updated_at': FieldValue.serverTimestamp(),
+                    });
+                  }
+                }
+
+                final imei = data['f_iemi'];
+                if (imei != null) {
+                  final activeQuery = await _firestore
+                      .collection('active_iemi')
+                      .where('iemi', isEqualTo: imei)
+                      .get();
+                  for (final activeDoc in activeQuery.docs) {
+                    await activeDoc.reference.update({
+                      'customer_name': selectedCustomerName,
+                      'customer_code': selectedCustomerCodeName,
+                    });
+                  }
+                }
+
+                if (!mounted) return;
+                Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }

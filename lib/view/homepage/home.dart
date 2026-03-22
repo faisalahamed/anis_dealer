@@ -334,7 +334,7 @@ class _SummaryCard extends StatefulWidget {
 }
 
 class _SummaryCardState extends State<_SummaryCard> {
-  bool _showStockValue = true;
+  bool _showStockValue = false;
   final NumberFormat _moneyFormat = NumberFormat.decimalPattern('en_IN');
 
   @override
