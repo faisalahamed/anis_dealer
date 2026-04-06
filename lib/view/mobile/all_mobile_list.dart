@@ -153,7 +153,7 @@ class _AllMobileViewState extends State<AllMobileView> {
                 ),
                 TextField(
                   controller: buyPriceController,
-                  readOnly: true,
+                  // readOnly: true,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: 'Buy Price'),
                 ),
